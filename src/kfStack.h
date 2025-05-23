@@ -1,8 +1,8 @@
-#ifndef STACK_H
-#define STACK_H
+#ifndef KF_STACK_H
+#define KF_STACK_H
 
-#include "Bios.h"
-#include "Status.h"
+#include "kfBios.h"
+#include "kfStatus.h"
 
 
 
@@ -75,4 +75,4 @@ void DataStackPrint(DataStack* d_stack) {
     }
 }
 
-#endif // STACK_H
+#endif // KF_STACK_H

@@ -1,9 +1,9 @@
-#ifndef FORTH_H
-#define FORTH_H
+#ifndef KOP_FORTH_H
+#define KOP_FORTH_H
 
-#include "Bios.h"
-#include "Stack.h"
-#include "TwoCell.h"
+#include "kfBios.h"
+#include "kfStack.h"
+#include "kfMath.h"
 
 
 
@@ -1041,4 +1041,4 @@ Status ForthTick(Forth* forth) {
 
 
 
-#endif // FORTH_H
+#endif // KOP_FORTH_H

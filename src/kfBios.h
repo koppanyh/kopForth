@@ -1,5 +1,5 @@
-#ifndef BIOS_H
-#define BIOS_H
+#ifndef KF_BIOS_H
+#define KF_BIOS_H
 
 #include <conio.h>
 #include <inttypes.h>
@@ -48,4 +48,4 @@ isize BiosReadChar() {
     return getch();
 }
 
-#endif // BIOS_H
+#endif // KF_BIOS_H

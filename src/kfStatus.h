@@ -1,7 +1,7 @@
-#ifndef STATUS_H
-#define STATUS_H
+#ifndef KF_STATUS_H
+#define KF_STATUS_H
 
-#include "Bios.h"
+#include "kfBios.h"
 
 typedef enum ErrType ErrType;
 enum ErrType {
@@ -55,4 +55,4 @@ bool IsOk(Status status) {
         if (!IsOk(s)) return s; \
     } while(0)
 
-#endif // STATUS_H
+#endif // KF_STATUS_H

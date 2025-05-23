@@ -1,7 +1,7 @@
-#ifndef TWOCELL_H
-#define TWOCELL_H
+#ifndef KF_MATH_H
+#define KF_MATH_H
 
-#include "Bios.h"
+#include "kfBios.h"
 
 #define ISIZE_SIZE     sizeof(isize)
 #define BYTE_CELL_SIZE ISIZE_SIZE * 2
@@ -154,4 +154,4 @@ void TwoCellTest() {
 }
 // */
 
-#endif // TWOCELL_H
+#endif // KF_MATH_H

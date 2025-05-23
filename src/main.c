@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Forth.h"
+#include "kopForth.h"
 
 int main() {
     Forth forth;
