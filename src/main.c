@@ -1,7 +1,14 @@
+/*
+ * main.c (last modified 2025-05-22)
+ * This is just a demo of how kopForth system is included.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "kopForth.h"
+
+
 
 int main() {
     Forth forth;

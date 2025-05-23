@@ -1,7 +1,22 @@
 #ifndef KF_STATUS_H
 #define KF_STATUS_H
 
+/*
+ * kfStatus.h (last modified 2025-05-22)
+ * The status file defines the object used for debugging and triggering system
+ * exceptions.
+ */
+
 #include "kfBios.h"
+
+
+
+#define RETURN_IF_ERROR(status) do { \
+        Status s = status; \
+        if (!IsOk(s)) return s; \
+    } while(0)
+
+
 
 typedef enum ErrType ErrType;
 enum ErrType {
@@ -30,6 +45,8 @@ typedef struct {
     char error[MAX_ERR_SIZE];
 } Status;
 
+
+
 Status MakeStatus(ErrType type, ErrCode code, usize line, char* error) {
     Status s;
     s.type = type;
@@ -49,10 +66,5 @@ Status OkStatus = { .type = OK, .code = NONE, .line = 0, .error = "" };
 bool IsOk(Status status) {
     return status.type == OK;
 }
-
-#define RETURN_IF_ERROR(status) do { \
-        Status s = status; \
-        if (!IsOk(s)) return s; \
-    } while(0)
 
 #endif // KF_STATUS_H

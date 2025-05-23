@@ -1,6 +1,12 @@
 #ifndef KOP_FORTH_H
 #define KOP_FORTH_H
 
+/*
+ * kopForth.h (last modified 2025-05-22)
+ * This is the main kopForth file that gets included and pulls in all the
+ * dependencies. It also includes the initialization and run routines.
+ */
+
 #include "kfBios.h"
 #include "kfStack.h"
 #include "kfMath.h"
@@ -32,7 +38,7 @@ typedef struct {
     uint8_t*  here;           // Pointer to the next available dictionary byte.
     uint8_t*  latest;         // The latest active word, FIND starts searching here.
     uint8_t*  pending;        // Most recently defined word, but not necessarily the latest active word.
-    bool      state;          // The compilation state, true=compiling, false=interpret
+    bool      state;          // The compilation state, true=compiling, false=interpret.
     uint8_t*  pc;             // Program counter for forth inner loop.
     uint8_t   mem[MEM_SIZE];  // The general memory space.
     DataStack d_stack;        // The data stack.
@@ -190,6 +196,7 @@ Status W_Dot(Forth* forth) {  // n --
     isize a;
     DATA_POP(a);
     BiosPrintIsize(a);
+    BiosWriteChar(' ');
     return OkStatus;
 }
 
@@ -1002,8 +1009,13 @@ Status ForthInit(Forth* forth) {
     if ((usize) latest->name - (usize) &latest->name_len != 1)
         return MakeStatus(SYSTEM, SYSTEM_STRUCT, 0, "BAD OFFSET");
 
-    printf("kopForth 0.1, %d Bit\n", (int)sizeof(isize) * 8);
-    printf("%d bytes used of %d\n", (int)(forth->here - forth->mem), (int)sizeof(forth->mem));
+    BiosWriteStr("kopForth v0.2, ");
+    BiosPrintIsize(sizeof(isize) * 8);
+    BiosWriteStr(" Bit, 2025\n");
+    BiosPrintIsize(forth->here - forth->mem);
+    BiosWriteStr(" bytes used of ");
+    BiosPrintIsize(sizeof(forth->mem));
+    BiosWriteChar('\n');
 
     return OkStatus;
 }

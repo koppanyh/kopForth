@@ -74,6 +74,8 @@ Update the Bios!
  - v0.2
    - TLDR: Major refactoring
    - Rename files with `kf` prefix
+   - Replace printf with Bios calls
+   - Add header comments to all files
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition

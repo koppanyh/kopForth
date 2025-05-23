@@ -1,6 +1,12 @@
 #ifndef KF_STACK_H
 #define KF_STACK_H
 
+/*
+ * kfStack.h (last modified 2025-05-22)
+ * The stack file defines the stacks used by kopForth. Specifically the return
+ * and data stacks.
+ */
+
 #include "kfBios.h"
 #include "kfStatus.h"
 
@@ -72,6 +78,7 @@ Status RetnStackPop(RetnStack* r_stack, void** value) {
 void DataStackPrint(DataStack* d_stack) {
     for (isize* ptr = &d_stack->data[DATA_STACK_SIZE-1]; ptr >= d_stack->ptr; ptr--) {
         BiosPrintIsize(*ptr);
+        BiosWriteChar(' ');
     }
 }
 

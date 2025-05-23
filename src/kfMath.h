@@ -1,7 +1,16 @@
 #ifndef KF_MATH_H
 #define KF_MATH_H
 
+/*
+ * kfMath.h (last modified 2025-05-22)
+ * This is an arbitrary precision math library used for handling the double cell
+ * math operations of Forth in a platform-agnostic way that's easy to manually
+ * port from an algorithmic standpoint.
+ */
+
 #include "kfBios.h"
+
+
 
 #define ISIZE_SIZE     sizeof(isize)
 #define BYTE_CELL_SIZE ISIZE_SIZE * 2
