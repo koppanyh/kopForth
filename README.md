@@ -19,21 +19,21 @@ int main() {
     kopForth forth;
 
     // Initialize the kopForth system and make sure it succeeded.
-    Status s = kopForthInit(&forth);
-    if (!IsOk(s)) {
-        printf(s.error);
-        return s.type;
+    kfStatus s = kopForthInit(&forth);
+    if (!kfStatusIsOk(s)) {
+        printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+        return s;
     }
 
     // Run the kopForth system until it stops.
     do {
-        s = ForthTick(&forth);
-    } while (IsOk(s));
+        s = kopForthTick(&forth);
+    } while (kfStatusIsOk(s));
 
     // Make sure it exited successfully.
-    if (s.code != SYSTEM_DONE) {
-        printf(s.error);
-        return s.type;
+    if (s != KF_SYSTEM_DONE) {
+        printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+        return s;
     }
     return 0;
 }
@@ -77,7 +77,7 @@ Update the Bios!
    - Words to lower case
  - v0.2
    - TLDR: Major refactoring
-   - Rename files with `kf` prefix
+   - Rename files and functions and macros with `kf` prefix
    - Replace printf with Bios calls
    - Add header comments to all files
    - Simplify how status works

@@ -11,10 +11,10 @@
 
 
 int main() {
-    Forth forth;
-    Status s = ForthInit(&forth);
-    if (!StatusIsOk(s)) {
-        printf("Error: %d (%s)\n", s, StatusStr[s]);
+    kopForth forth;
+    kfStatus s = kopForthInit(&forth);
+    if (!kfStatusIsOk(s)) {
+        printf("Error: %d (%s)\n", s, kfStatusStr[s]);
         return s;
     }
 
@@ -25,15 +25,15 @@ int main() {
     printf("\n"); // */
 
     do {
-        s = ForthTick(&forth);
-    } while (StatusIsOk(s));
+        s = kopForthTick(&forth);
+    } while (kfStatusIsOk(s));
     printf("\nstack: ");
-    DataStackPrint(&forth.d_stack);
+    kfDataStackPrint(&forth.d_stack);
     printf("\ntib: %s\n", forth.tib);
     printf("#tib: %d\n", (int) forth.tib_len);
 
-    if (s != SYSTEM_DONE) {
-        printf("Error: %d (%s)\n", s, StatusStr[s]);
+    if (s != KF_SYSTEM_DONE) {
+        printf("Error: %d (%s)\n", s, kfStatusStr[s]);
         return s;
     }
     return 0;

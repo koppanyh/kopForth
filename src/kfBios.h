@@ -27,37 +27,37 @@ typedef intptr_t isize;
 
 
 // How many items to allocate for the data stack.
-#define DATA_STACK_SIZE 64
+#define KF_DATA_STACK_SIZE 64
 // How many items to allocate for the return stack.
-#define RETN_STACK_SIZE 32
+#define KF_RETN_STACK_SIZE 32
 // How many bytes to allocate for the terminal input buffer.
-#define TIB_SIZE 80
+#define KF_TIB_SIZE 80
 // How many bytes to allocate for the working memory (plus word definitions).
-#define MEM_SIZE 4096*sizeof(void*)
+#define KF_MEM_SIZE 4096*sizeof(void*)
 // How many bytes to allocate for the names of words (including \0).
-#define MAX_NAME_SIZE 16
+#define KF_MAX_NAME_SIZE 16
 // The character to use for return (keyboard input).
-#define CR '\r'
+#define KF_CR '\r'
 // The character to use for newline (terminal output).
-#define NL '\n'
+#define KF_NL '\n'
 
 
 
-void BiosPrintIsize(isize value) {
+void kfBiosPrintIsize(isize value) {
     printf("%" PRIdPTR, value);
 }
 
-void BiosWriteChar(isize value) {
+void kfBiosWriteChar(isize value) {
     printf("%c", (int) value);
 }
 
-isize BiosReadChar() {
+isize kfBiosReadChar() {
     return getch();
 }
 
-void BiosWriteStr(char* value) {
+void kfBiosWriteStr(char* value) {
     while (*value) {
-        BiosWriteChar(*value);
+        kfBiosWriteChar(*value);
         value++;
     }
 }

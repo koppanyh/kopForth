@@ -14,72 +14,72 @@
 
 
 typedef struct {
-    isize data[DATA_STACK_SIZE];
+    isize data[KF_DATA_STACK_SIZE];
     isize* ptr;
-} DataStack;
+} kfDataStack;
 
 typedef struct {
-    void* data[RETN_STACK_SIZE];
+    void* data[KF_RETN_STACK_SIZE];
     void** ptr;
-} RetnStack;
+} kfRetnStack;
 
 
 
-void DataStackInit(DataStack* d_stack) {
-    d_stack->ptr = &d_stack->data[DATA_STACK_SIZE];
+void kfDataStackInit(kfDataStack* d_stack) {
+    d_stack->ptr = &d_stack->data[KF_DATA_STACK_SIZE];
 }
-void RetnStackInit(RetnStack* r_stack) {
-    r_stack->ptr = &r_stack->data[RETN_STACK_SIZE];
-}
-
-bool DataStackEmpty(DataStack* d_stack) {
-    return d_stack->ptr >= &d_stack->data[DATA_STACK_SIZE];
-}
-bool RetnStackEmpty(RetnStack* r_stack) {
-    return r_stack->ptr >= &r_stack->data[RETN_STACK_SIZE];
+void kfRetnStackInit(kfRetnStack* r_stack) {
+    r_stack->ptr = &r_stack->data[KF_RETN_STACK_SIZE];
 }
 
-bool DataStackFull(DataStack* d_stack) {
+bool kfDataStackEmpty(kfDataStack* d_stack) {
+    return d_stack->ptr >= &d_stack->data[KF_DATA_STACK_SIZE];
+}
+bool kfRetnStackEmpty(kfRetnStack* r_stack) {
+    return r_stack->ptr >= &r_stack->data[KF_RETN_STACK_SIZE];
+}
+
+bool kfDataStackFull(kfDataStack* d_stack) {
     return d_stack->ptr <= d_stack->data;
 }
-bool RetnStackFull(RetnStack* r_stack) {
+bool kfRetnStackFull(kfRetnStack* r_stack) {
     return r_stack->ptr <= r_stack->data;
 }
 
-Status DataStackPush(DataStack* d_stack, isize value) {
-    if (DataStackFull(d_stack))
-        return DATA_STACK_OVERFLOW;
+kfStatus kfDataStackPush(kfDataStack* d_stack, isize value) {
+    if (kfDataStackFull(d_stack))
+        return KF_DATA_STACK_OVERFLOW;
     d_stack->ptr--;
     *d_stack->ptr = value;
-    return STATUS_OK;
+    return KF_STATUS_OK;
 }
-Status RetnStackPush(RetnStack* r_stack, void* value) {
-    if (RetnStackFull(r_stack))
-        return RETN_STACK_OVERFLOW;
+kfStatus kfRetnStackPush(kfRetnStack* r_stack, void* value) {
+    if (kfRetnStackFull(r_stack))
+        return KF_RETN_STACK_OVERFLOW;
     r_stack->ptr--;
     *r_stack->ptr = value;
-    return STATUS_OK;
+    return KF_STATUS_OK;
 }
 
-Status DataStackPop(DataStack* d_stack, isize* value) {
-    if (DataStackEmpty(d_stack))
-        return DATA_STACK_UNDERFLOW;
+kfStatus kfDataStackPop(kfDataStack* d_stack, isize* value) {
+    if (kfDataStackEmpty(d_stack))
+        return KF_DATA_STACK_UNDERFLOW;
     *value = *d_stack->ptr;
     d_stack->ptr++;
-    return STATUS_OK;
+    return KF_STATUS_OK;
 }
-Status RetnStackPop(RetnStack* r_stack, void** value) {
-    if (RetnStackEmpty(r_stack))
-        return RETN_STACK_UNDERFLOW;
+kfStatus kfRetnStackPop(kfRetnStack* r_stack, void** value) {
+    if (kfRetnStackEmpty(r_stack))
+        return KF_RETN_STACK_UNDERFLOW;
     *value = *r_stack->ptr;
     r_stack->ptr++;
-    return STATUS_OK;
+    return KF_STATUS_OK;
 }
 
-void DataStackPrint(DataStack* d_stack) {
-    for (isize* ptr = &d_stack->data[DATA_STACK_SIZE-1]; ptr >= d_stack->ptr; ptr--) {
-        BiosPrintIsize(*ptr);
-        BiosWriteChar(' ');
+void kfDataStackPrint(kfDataStack* d_stack) {
+    for (isize* ptr = &d_stack->data[KF_DATA_STACK_SIZE-1]; ptr >= d_stack->ptr; ptr--) {
+        kfBiosPrintIsize(*ptr);
+        kfBiosWriteChar(' ');
     }
 }
 
