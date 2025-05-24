@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-05-22)
+ * kopForth.h (last modified 2025-05-23)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -164,7 +164,7 @@ void ForthAddString(Forth* forth, char* str) {
 Status W_Ext(Forth* forth) {  // --
     void* a;
     RETN_POP(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Lit(Forth* forth) {  // -- n
@@ -173,7 +173,7 @@ Status W_Lit(Forth* forth) {  // -- n
     DATA_PUSH(*lit_val);
     lit_val++;
     RETN_PUSH(lit_val);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Sub(Forth* forth) {  // n1 n2 -- n3
@@ -181,7 +181,7 @@ Status W_Sub(Forth* forth) {  // n1 n2 -- n3
     DATA_POP(b);
     DATA_POP(a);
     DATA_PUSH(a - b);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Mul(Forth* forth) {  // n1 n2 -- n3
@@ -189,7 +189,7 @@ Status W_Mul(Forth* forth) {  // n1 n2 -- n3
     DATA_POP(b);
     DATA_POP(a);
     DATA_PUSH(a * b);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Dot(Forth* forth) {  // n --
@@ -197,14 +197,14 @@ Status W_Dot(Forth* forth) {  // n --
     DATA_POP(a);
     BiosPrintIsize(a);
     BiosWriteChar(' ');
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Att(Forth* forth) {  // addr -- n
     isize* a;
     DATA_POP(a);
     DATA_PUSH(*a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Exc(Forth* forth) {  // n addr --
@@ -213,14 +213,14 @@ Status W_Exc(Forth* forth) {  // n addr --
     DATA_POP(b);
     DATA_POP(a);
     *b = a;
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Cat(Forth* forth) {  // addr -- n
     uint8_t* a;
     DATA_POP(a);
     DATA_PUSH(*a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Cex(Forth* forth) {  // n addr --
@@ -229,7 +229,7 @@ Status W_Cex(Forth* forth) {  // n addr --
     DATA_POP(b);
     DATA_POP(a);
     *b = a;
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Rpu(Forth* forth) {  // n --
@@ -239,7 +239,7 @@ Status W_Rpu(Forth* forth) {  // n --
     RETN_POP(b);
     RETN_PUSH(a);
     RETN_PUSH(b);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Rpo(Forth* forth) {  // -- n
@@ -249,13 +249,13 @@ Status W_Rpo(Forth* forth) {  // -- n
     RETN_POP(a);
     DATA_PUSH(a);
     RETN_PUSH(b);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Drp(Forth* forth) {  // n --
     isize a;
     DATA_POP(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Dup(Forth* forth) {  // n -- n n
@@ -263,7 +263,7 @@ Status W_Dup(Forth* forth) {  // n -- n n
     DATA_POP(a);
     DATA_PUSH(a);
     DATA_PUSH(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Swp(Forth* forth) {  // n1 n2 -- n2 n1
@@ -273,7 +273,7 @@ Status W_Swp(Forth* forth) {  // n1 n2 -- n2 n1
     DATA_POP(a);
     DATA_PUSH(b);
     DATA_PUSH(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Bra(Forth* forth) {  // --
@@ -281,7 +281,7 @@ Status W_Bra(Forth* forth) {  // --
     RETN_POP(a);
     a = *(void**) a;
     RETN_PUSH(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Zbr(Forth* forth) {  // n --
@@ -295,19 +295,19 @@ Status W_Zbr(Forth* forth) {  // n --
         a += sizeof(Word*);
     }
     RETN_PUSH(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Emt(Forth* forth) {  // n --
     isize a;
     DATA_POP(a);
     BiosWriteChar(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Key(Forth* forth) {  // -- n
     DATA_PUSH(BiosReadChar());
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Acc(Forth* forth) {  // addr u1 -- u2
@@ -336,7 +336,7 @@ Status W_Acc(Forth* forth) {  // addr u1 -- u2
         u2++;
     }
     DATA_PUSH(u2);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Wrd(Forth* forth) {  // char -- addr
@@ -347,12 +347,12 @@ Status W_Wrd(Forth* forth) {  // char -- addr
     // put HERE on the stack
     DATA_PUSH(forth->here);
     if (forth->in_offset >= forth->tib_len)
-        return OkStatus;
+        return STATUS_OK;
     // skip leading `char` in input stream
     while (forth->tib[forth->in_offset] == c) {
         forth->in_offset++;
         if (forth->in_offset >= forth->tib_len)
-            return OkStatus;
+            return STATUS_OK;
     }
     // start copying !char characters to HERE+1
     uint8_t* h = forth->here + 1;
@@ -368,7 +368,7 @@ Status W_Wrd(Forth* forth) {  // char -- addr
     // update the value at HERE (1 byte)
     *forth->here = ct;
     // update the >IN to show what's been consumed
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Typ(Forth* forth) {  // addr u --
@@ -378,7 +378,7 @@ Status W_Typ(Forth* forth) {  // addr u --
     DATA_POP(addr);
     for (isize i = 0; i < u; i++)
         BiosWriteChar(*addr++);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Cre(Forth* forth) {  // --
@@ -386,15 +386,16 @@ Status W_Cre(Forth* forth) {  // --
     RETURN_IF_ERROR(W_Wrd(forth));
     RETURN_IF_ERROR(W_Drp(forth));
     if (ForthCreateWord(forth) == NULL) {
-        return MakeStatus(SYSTEM, SYSTEM_NULL, 0, "CREATE FAILED");
+        BiosWriteStr("CREATE FAILED");
+        return SYSTEM_NULL;
     }
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Imm(Forth* forth) {  // --
     Word* word = (Word*) forth->pending;
     word->is_immediate = true;
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Cmp(Forth* forth) {  // a1 u1 a2 u2 -- n
@@ -409,11 +410,11 @@ Status W_Cmp(Forth* forth) {  // a1 u1 a2 u2 -- n
     for (usize i = 0; i < m; i++) {
         if (a1[i] < a2[i]) {
             DATA_PUSH(-1);
-            return OkStatus;
+            return STATUS_OK;
         }
         if (a1[i] > a2[i]) {
             DATA_PUSH(1);
-            return OkStatus;
+            return STATUS_OK;
         }
     }
     if (u1 < m)
@@ -422,7 +423,7 @@ Status W_Cmp(Forth* forth) {  // a1 u1 a2 u2 -- n
         DATA_PUSH(1);
     else
         DATA_PUSH(0);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Fnd(Forth* forth) {  // c-addr -- c-addr 0 | xt 1 | xt -1
@@ -442,21 +443,23 @@ Status W_Fnd(Forth* forth) {  // c-addr -- c-addr 0 | xt 1 | xt -1
         if (tmp == 0) {
             DATA_PUSH(word);
             DATA_PUSH(word->is_immediate ? 1 : -1);
-            return OkStatus;
+            return STATUS_OK;
         }
         word = word->link;
     }
     DATA_PUSH(f_str);
     DATA_PUSH(0);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Mss(Forth* forth) {  // d1 n1 +n2 -- d2
     TwoCell doub, mult;
     isize div;
     DATA_POP(div);
-    if (div != 1)
-        return MakeStatus(SYSTEM, SYSTEM_NOT_IMP, 0, "M*/ +n2 != 1");
+    if (div != 1) {
+        BiosWriteStr("M*/ +n2 != 1");
+        return SYSTEM_NOT_IMP;
+    }
     DATA_POP(mult.low);
     mult.high = mult.low < 0 ? -1 : 0;
     DATA_POP(doub.high);
@@ -464,7 +467,7 @@ Status W_Mss(Forth* forth) {  // d1 n1 +n2 -- d2
     doub = ByteCellToTwoCell(ByteCellsMultiply(TwoCellToByteCell(doub), TwoCellToByteCell(mult)));
     DATA_PUSH(doub.low);
     DATA_PUSH(doub.high);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Dpl(Forth* forth) {  // d1 d2 -- d3
@@ -476,7 +479,7 @@ Status W_Dpl(Forth* forth) {  // d1 d2 -- d3
     d1 = ByteCellToTwoCell(ByteCellsAdd(TwoCellToByteCell(d1), TwoCellToByteCell(d2)));
     DATA_PUSH(d1.low);
     DATA_PUSH(d1.high);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Equ(Forth* forth) {  // n1 n2 -- n
@@ -484,7 +487,7 @@ Status W_Equ(Forth* forth) {  // n1 n2 -- n
     DATA_POP(b);
     DATA_POP(a);
     DATA_PUSH(a == b ? -1 : 0);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Lss(Forth* forth) {  // n1 n2 -- n
@@ -492,7 +495,7 @@ Status W_Lss(Forth* forth) {  // n1 n2 -- n
     DATA_POP(b);
     DATA_POP(a);
     DATA_PUSH(a < b ? -1 : 0);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Nan(Forth* forth) {  // n1 n2 -- n
@@ -500,7 +503,7 @@ Status W_Nan(Forth* forth) {  // n1 n2 -- n
     DATA_POP(b);
     DATA_POP(a);
     DATA_PUSH(~(a & b));
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Crs(Forth* forth) {  // --
@@ -508,12 +511,12 @@ Status W_Crs(Forth* forth) {  // --
     RETN_POP(a);
     RetnStackInit(&forth->r_stack);
     RETN_PUSH(a);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Cds(Forth* forth) {  // * --
     DataStackInit(&forth->d_stack);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Psq(Forth* forth) {  // -- addr u
@@ -526,25 +529,28 @@ Status W_Psq(Forth* forth) {  // -- addr u
     RETN_PUSH(a);
     DATA_PUSH(chars);
     DATA_PUSH(len);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Squ(Forth* forth) {  // -- addr u
     // s" <len: uint8_t> <chars: char[len]>
     if (!forth->state) {  // Run time
-        return MakeStatus(SYSTEM, SYSTEM_COMP_ONLY, 0, "s\" : not comp");
+        BiosWriteStr("S\" : not comp");
+        return SYSTEM_COMP_ONLY;
     }
     // Compile time
     // TODO implement this
-    return MakeStatus(SYSTEM, SYSTEM_NOT_IMP, 0, "s\" : not imp");
-    //return OkStatus;
+    BiosWriteStr("S\" : not imp");
+    return SYSTEM_NOT_IMP;
+    //return STATUS_OK;
 }
 
 Status W_Dqu(Forth* forth) {  // --
     if (forth->state) { // Compile time
         // Is basically a macro for: s" <string>" type
         // TODO
-        return MakeStatus(SYSTEM, SYSTEM_NOT_IMP, 0, ".\" : not imp");
+        BiosWriteStr(".\" : not imp");
+        return SYSTEM_NOT_IMP;
     } else { // Run time
         while (forth->in_offset < forth->tib_len) {
             char c = forth->tib[forth->in_offset];
@@ -554,17 +560,17 @@ Status W_Dqu(Forth* forth) {  // --
             BiosWriteChar(c);
         }
     }
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Bye(Forth* forth) {  // --
     RetnStackInit(&forth->r_stack);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status W_Dos(Forth* forth) {  // --
     DataStackPrint(&forth->d_stack);
-    return OkStatus;
+    return STATUS_OK;
 }
 
 void PopulateWords(Forth* forth) {
@@ -983,8 +989,10 @@ void PopulateWords(Forth* forth) {
 /////////////////////////////////
 
 Status ForthInit(Forth* forth) {
-    if (sizeof(NativeFunc) != sizeof(Word*))
-        return MakeStatus(SYSTEM, SYSTEM_PTRWIDTH, 0, "NC PTR SIZE");
+    if (sizeof(NativeFunc) != sizeof(Word*)) {
+        BiosWriteStr("Pointer width mismatch");
+        return SYSTEM_PTRWIDTH;
+    }
 
     for (usize i = 0; i < MEM_SIZE; i++)
         forth->mem[i] = 0;
@@ -1006,8 +1014,10 @@ Status ForthInit(Forth* forth) {
     forth->pc = forth->latest;
 
     Word* latest = (Word*) forth->latest;
-    if ((usize) latest->name - (usize) &latest->name_len != 1)
-        return MakeStatus(SYSTEM, SYSTEM_STRUCT, 0, "BAD OFFSET");
+    if ((usize) latest->name - (usize) &latest->name_len != 1) {
+        BiosWriteStr("Bad name field offset in Word struct");
+        return SYSTEM_STRUCT;
+    }
 
     BiosWriteStr("kopForth v0.2, ");
     BiosPrintIsize(sizeof(isize) * 8);
@@ -1017,7 +1027,7 @@ Status ForthInit(Forth* forth) {
     BiosPrintIsize(sizeof(forth->mem));
     BiosWriteChar('\n');
 
-    return OkStatus;
+    return STATUS_OK;
 }
 
 Status ForthTick(Forth* forth) {
@@ -1038,13 +1048,13 @@ Status ForthTick(Forth* forth) {
         NativeFunc fn = (NativeFunc) cur_word->word_def[0];
         RETURN_IF_ERROR(fn(forth));
         if (RetnStackEmpty(&forth->r_stack))
-            return MakeStatus(SYSTEM, SYSTEM_DONE, 0, "DONE");
+            return SYSTEM_DONE;
         RETURN_IF_ERROR(RetnStackPop(&forth->r_stack, (void**) &forth->pc));
     }
     Word* word_addr = *(Word**) forth->pc;
     RETURN_IF_ERROR(RetnStackPush(&forth->r_stack, forth->pc + sizeof(Word*)));
     forth->pc = (uint8_t*) word_addr;
-    return OkStatus;
+    return STATUS_OK;
 }
 
   ///////////////////////////////

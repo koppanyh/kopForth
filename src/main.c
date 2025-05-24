@@ -1,5 +1,5 @@
 /*
- * main.c (last modified 2025-05-22)
+ * main.c (last modified 2025-05-23)
  * This is just a demo of how kopForth system is included.
  */
 
@@ -13,9 +13,9 @@
 int main() {
     Forth forth;
     Status s = ForthInit(&forth);
-    if (!IsOk(s)) {
-        printf(s.error);
-        return s.type;
+    if (!StatusIsOk(s)) {
+        printf("Error: %d (%s)\n", s, StatusStr[s]);
+        return s;
     }
 
     //printf("%d\n", sizeof(*forth.forth_vars));
@@ -26,15 +26,15 @@ int main() {
 
     do {
         s = ForthTick(&forth);
-    } while (IsOk(s));
+    } while (StatusIsOk(s));
     printf("\nstack: ");
     DataStackPrint(&forth.d_stack);
     printf("\ntib: %s\n", forth.tib);
     printf("#tib: %d\n", (int) forth.tib_len);
 
-    if (s.code != SYSTEM_DONE) {
-        printf(s.error);
-        return s.type;
+    if (s != SYSTEM_DONE) {
+        printf("Error: %d (%s)\n", s, StatusStr[s]);
+        return s;
     }
     return 0;
 }

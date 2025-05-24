@@ -2,7 +2,7 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-05-22)
+ * kfBios.h (last modified 2025-05-23)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
@@ -36,8 +36,6 @@ typedef intptr_t isize;
 #define MEM_SIZE 4096*sizeof(void*)
 // How many bytes to allocate for the names of words (including \0).
 #define MAX_NAME_SIZE 16
-// How many bytes to allocate for the status error details (including \0).
-#define MAX_ERR_SIZE 16
 // The character to use for return (keyboard input).
 #define CR '\r'
 // The character to use for newline (terminal output).

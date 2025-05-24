@@ -71,11 +71,16 @@ Update the Bios!
 
 ## Changelog
 
+ - TODO
+   - Split and reorganize files
+   - Add tests
+   - Words to lower case
  - v0.2
    - TLDR: Major refactoring
    - Rename files with `kf` prefix
    - Replace printf with Bios calls
    - Add header comments to all files
+   - Simplify how status works
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition
