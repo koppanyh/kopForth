@@ -2,7 +2,7 @@
 #define KF_STACK_H
 
 /*
- * kfStack.h (last modified 2025-05-23)
+ * kfStack.h (last modified 2025-05-27)
  * The stack file defines the stacks used by kopForth. Specifically the return
  * and data stacks.
  * These stacks grow down and the pointer points to the current "top" value.
@@ -13,15 +13,30 @@
 
 
 
-typedef struct {
+// Macros to help with using the stacks.
+
+#define KF_DATA_POP(var) KF_RETURN_IF_ERROR(kfDataStackPop(&forth->d_stack, (isize*) &var))
+#define KF_RETN_POP(var) KF_RETURN_IF_ERROR(kfRetnStackPop(&forth->r_stack, (void**) &var))
+#define KF_DATA_PUSH(var) KF_RETURN_IF_ERROR(kfDataStackPush(&forth->d_stack, (isize) var))
+#define KF_RETN_PUSH(var) KF_RETURN_IF_ERROR(kfRetnStackPush(&forth->r_stack, (void*) var))
+
+
+
+// Necessary typedef declarations for types.
+typedef struct kfDataStack kfDataStack;
+typedef struct kfRetnStack kfRetnStack;
+
+
+
+struct kfDataStack {
     isize data[KF_DATA_STACK_SIZE];
     isize* ptr;
-} kfDataStack;
+};
 
-typedef struct {
+struct kfRetnStack {
     void* data[KF_RETN_STACK_SIZE];
     void** ptr;
-} kfRetnStack;
+};
 
 
 

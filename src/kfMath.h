@@ -2,7 +2,7 @@
 #define KF_MATH_H
 
 /*
- * kfMath.h (last modified 2025-05-22)
+ * kfMath.h (last modified 2025-05-27)
  * This is an arbitrary precision math library used for handling the double cell
  * math operations of Forth in a platform-agnostic way that's easy to manually
  * port from an algorithmic standpoint.
@@ -12,24 +12,32 @@
 
 
 
+// Necessary typedef declarations for types.
+typedef struct TwoCell  TwoCell;
+typedef struct ByteCell ByteCell;
+
+
+
 #define ISIZE_SIZE     sizeof(isize)
 #define BYTE_CELL_SIZE ISIZE_SIZE * 2
 
 
 
-// Used to interface with the forth stack
-typedef struct {
+// Used to interface with the forth stack.
+struct TwoCell {
     isize low;
     isize high;
-} TwoCell;
+};
 
-// Used to actually do the math
-typedef struct {
+// Used to actually do the math.
+struct ByteCell {
     // Stored in little endian
     uint8_t bytes[BYTE_CELL_SIZE];
-} ByteCell;
+};
 
 
+
+// Conversion functions.
 
 ByteCell TwoCellToByteCell(TwoCell input) {
     ByteCell output;
@@ -58,6 +66,8 @@ TwoCell ByteCellToTwoCell(ByteCell input) {
 }
 
 
+
+// Math functions.
 
 ByteCell ByteCellsAdd(ByteCell a, ByteCell b) {
     uint8_t carry = 0;

@@ -39,6 +39,10 @@ int main() {
 }
 ```
 
+## Adding Words
+
+Make new file, add your implementation, profit.
+
 ## Porting Guide
 
 Update the Bios!
@@ -49,12 +53,24 @@ Update the Bios!
    - The main file that gets included in your main.c or wherever
  - kfBios.h
    - The only file that you should need to modify when porting to another system
- - kfMath.h
-   - Arbitrary precision math library used for double-cell math
+ - kfType.h
+   - The header containing the structs needed to instantiate a kopForth object
  - kfStack.h
    - The header that contains the stack implementations for kopForth
  - kfStatus.h
-   - The internal library used for status reporting (errors and stuff)
+   - The header used for status error reporting
+ - kfMath.h
+   - Arbitrary precision math library used for double-cell math
+ - kfWordsNative.h
+   - This contains the native word definitions for the kopForth system
+ - kfWordsVarAddrConst.h
+   - This contains the word definitions for variables, addresses, and constants
+ - kfWordsStackMem.h
+   - This contains the word definitions for stack and address operators
+ - kfWordsString.h
+   - This contains the word definitions for string/char related stuff
+ - kfWordsIntComp.h
+   - This contains the word definitions for the shell interpreter and compiler
  - main.c
    - Demo main file
 
@@ -72,15 +88,21 @@ Update the Bios!
 ## Changelog
 
  - TODO
-   - Split and reorganize files
+   - Change `word_def` to be a union
    - Add tests
-   - Words to lower case
+   - Words to lower case (or case insensitive)
+   - Update BIOS to flush chars and support \r\n
+   - Update BIOS to use getchar instead of getch
+   - Rewrite some native words to be forth words
+   - Remove unnecessary words
+   - Add file input support so words can be loaded
  - v0.2
-   - TLDR: Major refactoring
+   - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix
    - Replace printf with Bios calls
    - Add header comments to all files
    - Simplify how status works
+   - Split and refactor and reorganize files
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition
