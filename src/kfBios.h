@@ -2,13 +2,26 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-05-23)
+ * kfBios.h (last modified 2025-05-30)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
  */
 
-#include <conio.h>
+#ifdef _WIN32
+    #define KF_IS_WINDOWS
+#endif
+#ifdef _WIN64
+    #define KF_IS_WINDOWS
+#endif
+
+
+
+#if defined(KF_IS_WINDOWS)
+    // Windows requires this for the getch() function.
+    #include <conio.h>
+#endif
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -37,7 +50,12 @@ typedef intptr_t isize;
 // How many bytes to allocate for the names of words (including \0).
 #define KF_MAX_NAME_SIZE 16
 // The character to use for return (keyboard input).
-#define KF_CR '\r'
+#ifdef KF_IS_WINDOWS
+    // In Windows, the getch() function returns '\r' on keyboard return.
+    #define KF_CR '\r'
+#else
+    #define KF_CR '\n'
+#endif
 // The character to use for newline (terminal output).
 #define KF_NL '\n'
 
@@ -52,7 +70,12 @@ void kfBiosWriteChar(isize value) {
 }
 
 isize kfBiosReadChar() {
-    return getch();
+    #ifdef KF_IS_WINDOWS
+        // We use getch() on Windows to get around the input buffering issue.
+        return getch();
+    #else
+        return getchar();
+    #endif
 }
 
 void kfBiosWriteStr(char* value) {
@@ -61,5 +84,16 @@ void kfBiosWriteStr(char* value) {
         value++;
     }
 }
+
+void kfBiosSetup() {
+    setbuf(stdout, NULL);
+    #ifndef KF_IS_WINDOWS
+        // No need to disable buffering in Windows since getch() already does.
+        // TODO see if this actually makes a difference on *nix systems.
+        setbuf(stdin, NULL);
+    #endif
+}
+
+void kfBiosTeardown() {}
 
 #endif // KF_BIOS_H

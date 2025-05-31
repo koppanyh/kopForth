@@ -1,5 +1,5 @@
 /*
- * main.c (last modified 2025-05-23)
+ * main.c (last modified 2025-05-30)
  * This is just a demo of how kopForth system is included.
  */
 
@@ -11,27 +11,31 @@
 
 
 int main() {
+    // Define your kopForth object.
+    kfBiosSetup();
     kopForth forth;
+
+    // Initialize the kopForth system and make sure it succeeded.
     kfStatus s = kopForthInit(&forth);
     if (!kfStatusIsOk(s)) {
         printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+        kfBiosTeardown();
         return s;
     }
 
-    //printf("%d\n", sizeof(*forth.forth_vars));
-    /*for (int i = 0; i < 256; i++) {
-        printf("%d(%c) ", forth.mem[i], forth.mem[i]);
-    }
-    printf("\n"); // */
-
+    // Run the kopForth system until it stops.
     do {
         s = kopForthTick(&forth);
     } while (kfStatusIsOk(s));
+
+    // Print debug stuff.
     printf("\nstack: ");
     kfDataStackPrint(&forth.d_stack);
     printf("\ntib: %s\n", forth.tib);
     printf("#tib: %d\n", (int) forth.tib_len);
 
+    // Make sure it exited successfully.
+    kfBiosTeardown();
     if (s != KF_SYSTEM_DONE) {
         printf("Error: %d (%s)\n", s, kfStatusStr[s]);
         return s;

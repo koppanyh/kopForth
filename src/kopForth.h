@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-05-29)
+ * kopForth.h (last modified 2025-05-30)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -102,7 +102,11 @@ kfStatus kopForthInit(kopForth* forth) {
 
     kfBiosWriteStr("kopForth v0.2, ");
     kfBiosPrintIsize(sizeof(isize) * 8);
-    kfBiosWriteStr(" Bit, 2025\n");
+    kfBiosWriteStr(" Bit, 2025");
+    #ifdef KF_IS_WINDOWS
+        kfBiosWriteStr(", Windows Edition");
+    #endif
+    kfBiosWriteChar('\n');
     kfBiosPrintIsize(forth->here - forth->mem);
     kfBiosWriteStr(" bytes used of ");
     kfBiosPrintIsize(sizeof(forth->mem));
