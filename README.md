@@ -93,7 +93,9 @@ Update the Bios!
 ## Changelog
 
  - TODO
-   - Change `word_def` to be a union
+   - Change flags to be packed in an int
+   - Add debug toggle
+   - Add more startup checks
    - Words to lower case (or case insensitive)
    - Rewrite some native words to be forth words
    - Remove unnecessary words
@@ -107,6 +109,8 @@ Update the Bios!
    - Simplify how status works
    - Split and refactor and reorganize files
    - Update BIOS to flush chars and use getchar on non-Windows systems
+   - Change `word_def` to be a union
+   - Simplified inner interpreter
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition

@@ -2,7 +2,7 @@
 #define KF_TYPE_H
 
 /*
- * kfType.h (last modified 2025-05-28)
+ * kfType.h (last modified 2025-06-04)
  * This contains the main structs and types used by the kopForth system, along
  * with their helper functions.
  */
@@ -13,7 +13,6 @@
 
 
 // Macros to help with defining words.
-
 #define WRD(wrd) kopForthAddWordP(forth, wrd)
 #define LIT(isz) kopForthAddWordP(forth, forth->debug_words.lit); kopForthAddIsize(forth, (isize) isz)
 #define RAW(isz) kopForthAddIsize(forth, (isize) isz)
@@ -28,11 +27,12 @@
 typedef struct kopForth     kopForth;
 typedef struct kfWord       kfWord;
 typedef struct kfDebugWords kfDebugWords;
+typedef union  kfWordDef    kfWordDef;
 
 // This is a function pointer type for native word implementations. It takes a
 // kopForth pointer, does something with it, and returns a status.
 // Usage:
-// kfStatus W_<3 letter name>(kopForth* forth) {  // <stack before> -- <stack after>
+// kfStatus W_<word name>(kopForth* forth) {  // <stack before> -- <stack after>
 //     <native word logic here>
 //     return KF_STATUS_OK;
 // }
@@ -71,6 +71,17 @@ struct kopForth {
     kfRetnStack  r_stack;           // The return stack.
 };
 
+// This is the type that actually defines what the word does. It either calls a
+// native function, or it rolls through a list of word addresses and executes
+// them in sequence.
+// It's important that this comes at the end of the `kfWord` so the `forth`
+// field can be expanded past its boundary of 1 item without colliding with any
+// of the other fields in the word definition.
+union kfWordDef {
+    kfNativeFunc native;    // Pointer to a native function.
+    kfWord*      forth[1];  // List of word addresses to execute.
+};
+
 // This is the word definition type that defines the name and flags and overall
 // functionality of each Forth word in memory.
 struct kfWord {
@@ -83,7 +94,7 @@ struct kfWord {
     // TODO remove this and have the word take care of it itself.
     uint8_t   is_compile_only : 1;     // Determines if the word can only be used in a definition.
     // TODO turn this into a union for native and non-native word defs.
-    kfWord* word_def[1];               // The actual definition. This needs to be at the end.
+    kfWordDef word_def;                // The actual definition. This needs to be at the end.
 };
 
 
@@ -97,9 +108,9 @@ bool kfCanFitInMem(kopForth* forth, usize length) {
 
 kfWord* kopForthCreateWord(kopForth* forth) {
     kfWord* word = (kfWord*) forth->here;
-    if (!kfCanFitInMem(forth, sizeof(*word) - sizeof(word->word_def)))
+    if (!kfCanFitInMem(forth, sizeof(kfWord)))
         return NULL;
-    forth->here += sizeof(*word) - sizeof(word->word_def[0]);
+    forth->here += sizeof(kfWord) - sizeof(kfWordDef);
     forth->latest = forth->pending;
     word->link = forth->latest;
     forth->pending = word;
