@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-05-28)
+ * kfWordsNative.h (last modified 2025-06-04)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -293,7 +293,7 @@ kfStatus W_Cre(kopForth* forth) {  // --
 
 kfStatus W_Imm(kopForth* forth) {  // --
     kfWord* word = (kfWord*) forth->pending;
-    word->is_immediate = true;
+    word->flags.bit_flags.is_immediate = true;
     return KF_STATUS_OK;
 }
 
@@ -341,7 +341,7 @@ kfStatus W_Fnd(kopForth* forth) {  // c-addr -- c-addr 0 | xt 1 | xt -1
         KF_DATA_POP(tmp);
         if (tmp == 0) {
             KF_DATA_PUSH(word);
-            KF_DATA_PUSH(word->is_immediate ? 1 : -1);
+            KF_DATA_PUSH(word->flags.bit_flags.is_immediate ? 1 : -1);
             return KF_STATUS_OK;
         }
         word = word->link;
@@ -477,44 +477,44 @@ kfStatus W_Dos(kopForth* forth) {  // --
 void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     // TODO Null check.
 
-    wn->ext = kopForthAddNativeWord(forth, "EXIT",      W_Ext, false, true );
-    wn->lit = kopForthAddNativeWord(forth, "(LIT)",     W_Lit, false, true );
-    wn->sub = kopForthAddNativeWord(forth, "-",         W_Sub, false, false);
-    wn->mul = kopForthAddNativeWord(forth, "*",         W_Mul, false, false);
-    wn->dot = kopForthAddNativeWord(forth, ".",         W_Dot, false, false);
-    wn->att = kopForthAddNativeWord(forth, "@",         W_Att, false, false);
-    wn->exc = kopForthAddNativeWord(forth, "!",         W_Exc, false, false);
-    wn->cat = kopForthAddNativeWord(forth, "C@",        W_Cat, false, false);
-    wn->cex = kopForthAddNativeWord(forth, "C!",        W_Cex, false, false);
-    wn->rpu = kopForthAddNativeWord(forth, ">R",        W_Rpu, false, false);
-    wn->rpo = kopForthAddNativeWord(forth, "R>",        W_Rpo, false, false);
-    wn->drp = kopForthAddNativeWord(forth, "DROP",      W_Drp, false, false);
-    wn->dup = kopForthAddNativeWord(forth, "DUP",       W_Dup, false, false);
-    wn->swp = kopForthAddNativeWord(forth, "SWAP",      W_Swp, false, false);
-    wn->bra = kopForthAddNativeWord(forth, "BRANCH",    W_Bra, false, true );
-    wn->zbr = kopForthAddNativeWord(forth, "0BRANCH",   W_Zbr, false, true );
-    wn->emt = kopForthAddNativeWord(forth, "EMIT",      W_Emt, false, false);
-    wn->key = kopForthAddNativeWord(forth, "KEY",       W_Key, false, false);
-    wn->acc = kopForthAddNativeWord(forth, "ACCEPT",    W_Acc, false, false);
-    wn->wrd = kopForthAddNativeWord(forth, "WORD",      W_Wrd, false, false);
-    wn->typ = kopForthAddNativeWord(forth, "TYPE",      W_Typ, false, false);
-    wn->cre = kopForthAddNativeWord(forth, "CREATE",    W_Cre, false, false);
-    wn->imm = kopForthAddNativeWord(forth, "IMMEDIATE", W_Imm, true,  false);
-    wn->cmp = kopForthAddNativeWord(forth, "COMPARE",   W_Cmp, false, false);
-    wn->fnd = kopForthAddNativeWord(forth, "FIND",      W_Fnd, false, false);
-    wn->mss = kopForthAddNativeWord(forth, "M*/",       W_Mss, false, false);
-    wn->dpl = kopForthAddNativeWord(forth, "D+",        W_Dpl, false, false);
-    wn->equ = kopForthAddNativeWord(forth, "=",         W_Equ, false, false);
-    wn->lss = kopForthAddNativeWord(forth, "<",         W_Lss, false, false);
-    wn->nan = kopForthAddNativeWord(forth, "NAND",      W_Nan, false, false);
-    wn->psq = kopForthAddNativeWord(forth, "(S\")",     W_Psq, false, true );
-    wn->squ = kopForthAddNativeWord(forth, "S\"",       W_Squ, true,  true );
-    wn->dqu = kopForthAddNativeWord(forth, ".\"",       W_Dqu, true,  false);
-    wn->bye = kopForthAddNativeWord(forth, "BYE",       W_Bye, false, false);
-    wn->dos = kopForthAddNativeWord(forth, ".S",        W_Dos, false, false);
+    wn->ext = kopForthAddNativeWord(forth, "EXIT",      W_Ext, false);  // TODO make compile only.
+    wn->lit = kopForthAddNativeWord(forth, "(LIT)",     W_Lit, false);  // TODO make compile only.
+    wn->sub = kopForthAddNativeWord(forth, "-",         W_Sub, false);
+    wn->mul = kopForthAddNativeWord(forth, "*",         W_Mul, false);
+    wn->dot = kopForthAddNativeWord(forth, ".",         W_Dot, false);
+    wn->att = kopForthAddNativeWord(forth, "@",         W_Att, false);
+    wn->exc = kopForthAddNativeWord(forth, "!",         W_Exc, false);
+    wn->cat = kopForthAddNativeWord(forth, "C@",        W_Cat, false);
+    wn->cex = kopForthAddNativeWord(forth, "C!",        W_Cex, false);
+    wn->rpu = kopForthAddNativeWord(forth, ">R",        W_Rpu, false);
+    wn->rpo = kopForthAddNativeWord(forth, "R>",        W_Rpo, false);
+    wn->drp = kopForthAddNativeWord(forth, "DROP",      W_Drp, false);
+    wn->dup = kopForthAddNativeWord(forth, "DUP",       W_Dup, false);
+    wn->swp = kopForthAddNativeWord(forth, "SWAP",      W_Swp, false);
+    wn->bra = kopForthAddNativeWord(forth, "BRANCH",    W_Bra, false);  // TODO make compile only.
+    wn->zbr = kopForthAddNativeWord(forth, "0BRANCH",   W_Zbr, false);  // TODO make compile only.
+    wn->emt = kopForthAddNativeWord(forth, "EMIT",      W_Emt, false);
+    wn->key = kopForthAddNativeWord(forth, "KEY",       W_Key, false);
+    wn->acc = kopForthAddNativeWord(forth, "ACCEPT",    W_Acc, false);
+    wn->wrd = kopForthAddNativeWord(forth, "WORD",      W_Wrd, false);
+    wn->typ = kopForthAddNativeWord(forth, "TYPE",      W_Typ, false);
+    wn->cre = kopForthAddNativeWord(forth, "CREATE",    W_Cre, false);
+    wn->imm = kopForthAddNativeWord(forth, "IMMEDIATE", W_Imm, true );
+    wn->cmp = kopForthAddNativeWord(forth, "COMPARE",   W_Cmp, false);
+    wn->fnd = kopForthAddNativeWord(forth, "FIND",      W_Fnd, false);
+    wn->mss = kopForthAddNativeWord(forth, "M*/",       W_Mss, false);
+    wn->dpl = kopForthAddNativeWord(forth, "D+",        W_Dpl, false);
+    wn->equ = kopForthAddNativeWord(forth, "=",         W_Equ, false);
+    wn->lss = kopForthAddNativeWord(forth, "<",         W_Lss, false);
+    wn->nan = kopForthAddNativeWord(forth, "NAND",      W_Nan, false);
+    wn->psq = kopForthAddNativeWord(forth, "(S\")",     W_Psq, false);  // TODO make compile only.
+    wn->squ = kopForthAddNativeWord(forth, "S\"",       W_Squ, true );  // TODO make compile only.
+    wn->dqu = kopForthAddNativeWord(forth, ".\"",       W_Dqu, true );
+    wn->bye = kopForthAddNativeWord(forth, "BYE",       W_Bye, false);
+    wn->dos = kopForthAddNativeWord(forth, ".S",        W_Dos, false);
 
-    wn->crs = kopForthAddNativeWord(forth, "(CLR-RET-STACK)", W_Crs, false, false);
-    wn->cds = kopForthAddNativeWord(forth, "(CLR-DAT-STACK)", W_Cds, false, false);
+    wn->crs = kopForthAddNativeWord(forth, "(CLR-RET-STACK)", W_Crs, false);
+    wn->cds = kopForthAddNativeWord(forth, "(CLR-DAT-STACK)", W_Cds, false);
 }
 
 #endif // KF_WORDS_NATIVE_H

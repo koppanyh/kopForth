@@ -24,10 +24,12 @@
 
 
 // Necessary typedef declarations for types.
-typedef struct kopForth     kopForth;
-typedef struct kfWord       kfWord;
-typedef struct kfDebugWords kfDebugWords;
-typedef union  kfWordDef    kfWordDef;
+typedef struct kopForth       kopForth;
+typedef struct kfWord         kfWord;
+typedef struct kfDebugWords   kfDebugWords;
+typedef struct kfWordBitFlags kfWordBitFlags;
+typedef union  kfWordDef      kfWordDef;
+typedef union  kfWordFlags    kfWordFlags;
 
 // This is a function pointer type for native word implementations. It takes a
 // kopForth pointer, does something with it, and returns a status.
@@ -82,19 +84,25 @@ union kfWordDef {
     kfWord*      forth[1];  // List of word addresses to execute.
 };
 
+struct kfWordBitFlags {
+    uint8_t   is_native    : 1;  // Determines if the word points to a function or a list of words.
+    uint8_t   is_immediate : 1;  // Determines if the word is executed at compile time.
+};
+
+// TODO test that the bits correspond to their logical bit position.
+union kfWordFlags {
+    uint8_t        raw_flags;  // Provides an access address to all the flags at once.
+    kfWordBitFlags bit_flags;  // Provides individual access to the flags.
+};
+
 // This is the word definition type that defines the name and flags and overall
 // functionality of each Forth word in memory.
 struct kfWord {
-    uint8_t   name_len;                // How long the name is (not including \0).
-    char      name[KF_MAX_NAME_SIZE];  // The name of the word.
-    kfWord*   link;                    // Linked-list pointer to the previous word.
-    // TODO change this to be a single uint8_t that refers to the bits directly.
-    uint8_t   is_native : 1;           // Determines if the word points to a function or a list of words.
-    uint8_t   is_immediate : 1;        // Determines if the word is executed at compile time.
-    // TODO remove this and have the word take care of it itself.
-    uint8_t   is_compile_only : 1;     // Determines if the word can only be used in a definition.
-    // TODO turn this into a union for native and non-native word defs.
-    kfWordDef word_def;                // The actual definition. This needs to be at the end.
+    uint8_t     name_len;                // How long the name is (not including \0).
+    char        name[KF_MAX_NAME_SIZE];  // The name of the word.
+    kfWord*     link;                    // Linked-list pointer to the previous word.
+    kfWordFlags flags;                   // The flags used for runtime and compile time behaviors.
+    kfWordDef   word_def;                // The actual definition. This needs to be at the end.
 };
 
 
@@ -114,9 +122,8 @@ kfWord* kopForthCreateWord(kopForth* forth) {
     forth->latest = forth->pending;
     word->link = forth->latest;
     forth->pending = word;
-    word->is_native = false;
-    word->is_immediate = false;
-    word->is_compile_only = false;
+    word->flags.bit_flags.is_native = false;
+    word->flags.bit_flags.is_immediate = false;
     return word;
 }
 
@@ -155,13 +162,12 @@ kfWord** kopForthAddWordP(kopForth* forth, kfWord* value) {
 }
 
 kfWord* kopForthAddNativeWord(kopForth* forth, char* name, kfNativeFunc func_ptr,
-                         bool is_immediate, bool is_compile_only) {
+                              bool is_immediate) {
     if (!kfCanFitInMem(forth, sizeof(kfWord)))
         return NULL;
     kfWord* word = kopForthAddWord(forth, name);
-    word->is_native = true;
-    word->is_immediate = is_immediate;
-    word->is_compile_only = is_compile_only;
+    word->flags.bit_flags.is_native = true;
+    word->flags.bit_flags.is_immediate = is_immediate;
     kopForthAddIsize(forth, (isize) func_ptr);
     return word;
 }

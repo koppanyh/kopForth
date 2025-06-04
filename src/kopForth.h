@@ -133,7 +133,7 @@ kfStatus kopForthTick(kopForth* forth) {
     kfDataStackPrint(&forth->d_stack);
     printf(">\n");
     // */
-    if (cur_word->is_native) {
+    if (cur_word->flags.bit_flags.is_native) {
         KF_RETURN_IF_ERROR(cur_word->word_def.native(forth));
         KF_RETURN_IF_ERROR(kfRetnStackPop(&forth->r_stack, (void**) &forth->pc));
     } else {

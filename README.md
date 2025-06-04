@@ -93,7 +93,6 @@ Update the Bios!
 ## Changelog
 
  - TODO
-   - Change flags to be packed in an int
    - Add debug toggle
    - Add more startup checks
    - Words to lower case (or case insensitive)
@@ -111,6 +110,7 @@ Update the Bios!
    - Update BIOS to flush chars and use getchar on non-Windows systems
    - Change `word_def` to be a union
    - Simplified inner interpreter
+   - Change flags to be packed in an int
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition
