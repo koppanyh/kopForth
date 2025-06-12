@@ -102,7 +102,6 @@ Update the Bios!
 ## Changelog
 
  - TODO
-   - Add debug toggle
    - Words to lower case (or case insensitive)
    - Rewrite some native words to be forth words
    - Remove unnecessary words
@@ -120,6 +119,7 @@ Update the Bios!
    - Simplified inner interpreter
    - Change flags to be packed in an int
    - Add more startup checks and pack word struct
+   - Add debug toggle
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition

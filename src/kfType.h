@@ -2,7 +2,7 @@
 #define KF_TYPE_H
 
 /*
- * kfType.h (last modified 2025-06-11)
+ * kfType.h (last modified 2025-06-12)
  * This contains the main structs and types used by the kopForth system, along
  * with their helper functions.
  */
@@ -61,6 +61,7 @@ struct kopForth {
     kfWord*      latest;            // Pointer to the latest active word in `mem`. FIND starts searching here.
     kfWord*      pending;           // Pointer to the most recently defined word, but not necessarily the latest active word.
     isize        state;             // The compilation state, true=compiling, false=interpret. Uses `isize` so Forth programs can just use `@` and `!`.
+    isize        debug;             // The debug state, true=enabled, false=disabled. Uses `isize` so Forth programs can just use `@` and `!`.
     uint8_t*     pc;                // Program counter for forth inner loop.
     kfDebugWords debug_words;       // Pointers to words used by the kopForth debugger and compiler.
     // Heap

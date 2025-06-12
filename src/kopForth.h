@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-06-11)
+ * kopForth.h (last modified 2025-06-12)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -70,6 +70,33 @@ kfStatus kfPopulateWords(kopForth* forth) {
 
     return KF_STATUS_OK;
 }
+
+void kfDebug(kopForth* forth) {
+    isize depth = &forth->r_stack.data[KF_RETN_STACK_SIZE] - forth->r_stack.ptr;
+    for (isize i = 0; i < depth; i++) {
+        kfBiosWriteStr("  ");
+    }
+    kfWord* cur_word = (kfWord*) forth->pc;
+    kfBiosWriteStrLen(cur_word->name, cur_word->name_len);
+    kfBiosWriteChar(' ');
+    if (cur_word == forth->debug_words.lit ||
+        cur_word == forth->debug_words.bra ||
+        cur_word == forth->debug_words.zbr) {
+        kfBiosWriteChar('(');
+        kfBiosPrintIsize(*(isize*)(*forth->r_stack.ptr));
+        kfBiosWriteStr(") ");
+    }
+    kfBiosPrintPointer(cur_word);
+    kfBiosWriteStr(" < ");
+    kfDataStackPrint(&forth->d_stack);
+    kfBiosWriteStr(">\n");
+}
+
+//////////////////////////////////
+// Internal functions         ▲ //
+//////////////////////////////////
+// User-accessible functions  ▼ //
+//////////////////////////////////
 
 kfStatus kopForthTest() {
     kfBiosWriteStr("Running self checks...\n");
@@ -145,6 +172,11 @@ kfStatus kopForthInit(kopForth* forth) {
     forth->latest = NULL;
     forth->pending = NULL;
     forth->state = false;
+    #ifdef KF_DEBUG
+        forth->debug = true;
+    #else
+        forth->debug = false;
+    #endif
 
     // Initialize stacks.
     kfDataStackInit(&forth->d_stack);
@@ -170,21 +202,10 @@ kfStatus kopForthInit(kopForth* forth) {
 }
 
 kfStatus kopForthTick(kopForth* forth) {
-    kfWord* cur_word = (kfWord*) forth->pc;
-    /* Debug routine
-    int t = &forth->r_stack.data[KF_RETN_STACK_SIZE] - forth->r_stack.ptr;
-    for (int i = 0; i < t; i++)
-        printf("  ");
-    printf("%s ", cur_word->name);
-    if (cur_word == forth->debug_words.lit ||
-        cur_word == forth->debug_words.bra ||
-        cur_word == forth->debug_words.zbr) {
-        printf("(%d) ", *(isize*)(*forth->r_stack.ptr));
+    if (forth->debug) {
+        kfDebug(forth);
     }
-    printf("%p < ", forth->pc);
-    kfDataStackPrint(&forth->d_stack);
-    printf(">\n");
-    // */
+    kfWord* cur_word = (kfWord*) forth->pc;
     if (cur_word->flags.bit_flags.is_native) {
         KF_RETURN_IF_ERROR(cur_word->word_def.native(forth));
         KF_RETURN_IF_ERROR(kfRetnStackPop(&forth->r_stack, (void**) &forth->pc));

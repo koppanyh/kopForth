@@ -2,7 +2,7 @@
 #define KF_WORDS_VAR_ADDR_CONST_H
 
 /*
- * kfWordsVarAddrConst.h (last modified 2025-05-28)
+ * kfWordsVarAddrConst.h (last modified 2025-06-12)
  * This contains the word definitions for variables, addresses, and constants.
  */
 
@@ -21,6 +21,7 @@ struct kfWordsVarAddrConst {
     kfWord* lpt;
     kfWord* ppt;
     kfWord* sta;
+    kfWord* dbg;
     kfWord* her;
     kfWord* lat;
     kfWord* pad;
@@ -43,6 +44,7 @@ void kfPopulateWordsVarAddrConst(kopForth* forth, kfWordsNative* wn,
     wv->lpt = kopForthAddVariable(forth, "LP",    (isize*) &forth->latest);     // -- a
     wv->ppt = kopForthAddVariable(forth, "PP",    (isize*) &forth->pending);    // -- a
     wv->sta = kopForthAddVariable(forth, "STATE", (isize*) &forth->state);      // -- a
+    wv->dbg = kopForthAddVariable(forth, "DEBUG", (isize*) &forth->debug);      // -- a
 
     // Addresses
     wv->her = kopForthAddWord(forth, "HERE");    // ( -- a )s

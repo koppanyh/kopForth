@@ -2,7 +2,7 @@
 #define KF_WORDS_INT_COMP_H
 
 /*
- * kfWordsIntComp.h (last modified 2025-06-04)
+ * kfWordsIntComp.h (last modified 2025-06-12)
  * This contains the word definitions for the shell interpreter and compiler.
  */
 
@@ -158,13 +158,13 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         *b24 = (isize) b26; }
     wi->qut = kopForthAddWord(forth, "QUIT"); {                  // ( -- )
         WRD(wn->crs);                                            // (CLR-RET-STACK)
+        WRD(ws->crr);                                            // CR
         WRD(wi->obr);                                            // POSTPONE [
                                                                  // BEGIN
         WRDADDR(b00, wi->rfl);                                   //     REFILL  ( f )
         LITADDR(b01, wn->zbr, 0);                                // WHILE
         WRD(wi->inp);                                            //     INTERPRET
-        PRSTR(" ok");                                            //     ."  ok"
-        WRD(ws->crr);                                            //     CR
+        PRSTR(" ok\n");                                          //     ."  ok" CR
         LITADDR(b02, wn->bra, 0);                                // REPEAT
         WRDADDR(b03, wn->ext);
         *b02 = (isize) b00;
