@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-06-04)
+ * kopForth.h (last modified 2025-06-11)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -18,7 +18,7 @@
 
 
 
-void kfPopulateWords(kopForth* forth) {
+kfStatus kfPopulateWords(kopForth* forth) {
     // TODO Null check
 
     // Native words
@@ -67,16 +67,78 @@ void kfPopulateWords(kopForth* forth) {
         *c1 = (isize) c3;
         *c2 = (isize) c0; }
     */
+
+    return KF_STATUS_OK;
 }
 
+kfStatus kopForthTest() {
+    kfBiosWriteStr("Running self checks...\n");
 
-
-kfStatus kopForthInit(kopForth* forth) {
+    // Make sure that our data type can actually be converted into a pointer and
+    // vice versa.
+    if (sizeof(isize) != sizeof(void*) || sizeof(usize) != sizeof(void*)) {
+        kfBiosWriteStr("Integer width mismatch\n");
+        return KF_TEST_PTR_WIDTH;
+    }
+    // Makes sure that the pointer to a function is the same as a pointer to
+    // memory. This is important to catch Harvard architecture CPUs that split
+    // program and data across memories with different address sizes.
     if (sizeof(kfNativeFunc) != sizeof(kfWord*)) {
-        kfBiosWriteStr("Pointer width mismatch");
-        return KF_SYSTEM_PTRWIDTH;
+        kfBiosWriteStr("Function pointer width mismatch\n");
+        return KF_TEST_PTR_WIDTH;
+    }
+    // Secondary confirmation to check that the kfWordDef size is correct.
+    if (sizeof(kfNativeFunc) != sizeof(kfWordDef)) {
+        kfBiosWriteStr("Union width mismatch with kfWordDef\n");
+        return KF_TEST_PTR_WIDTH;
     }
 
+    // Tests to make sure the compiler isn't doing any funny business. The words
+    // written in forth depend on these field positions being correct.
+    kfWord word;
+    // Check that the name length variable is only 1 byte.
+    if ((usize) word.name - (usize) &word.name_len != 1) {
+        kfBiosWriteStr("Bad `name_len` size in kfWord\n");
+        return KF_TEST_STRUCT;
+    }
+    // Check that the name char array is actually the size it's supposed to be.
+    if ((usize) &word.link - (usize) word.name != KF_MAX_NAME_SIZE) {
+        kfBiosWriteStr("Bad `name` size in kfWord\n");
+        return KF_TEST_STRUCT;
+    }
+    // Check that the word link is actually the size of a pointer.
+    if ((usize) &word.flags - (usize) &word.link != sizeof(kfWord*)) {
+        kfBiosWriteStr("Bad `link` size in kfWord\n");
+        return KF_TEST_STRUCT;
+    }
+    // Check that the flags variable is only 1 byte.
+    if ((usize) &word.word_def - (usize) &word.flags != 1) {
+        kfBiosWriteStr("Bad `flags` size in kfWord\n");
+        return KF_TEST_STRUCT;
+    }
+
+    // Tests to make sure the compiler isn't doing any funny business. The words
+    // written in forth depend on these flag positions being correct.
+    word.flags.raw_flags = 0;
+    // Test that the native flag is in the right place.
+    word.flags.bit_flags.is_native = 1;
+    if (word.flags.raw_flags != 0b00000001) {
+        kfBiosWriteStr("Bad `is_native` position in kfWordFlags\n");
+        return KF_TEST_STRUCT;
+    }
+    word.flags.raw_flags = 0;
+    // Test that the immediate flag is in the right place.
+    word.flags.bit_flags.is_immediate = 1;
+    if (word.flags.raw_flags != 0b00000010) {
+        kfBiosWriteStr("Bad `is_immediate` position in kfWordFlags\n");
+        return KF_TEST_STRUCT;
+    }
+
+    return KF_STATUS_OK;
+}
+
+kfStatus kopForthInit(kopForth* forth) {
+    // Setup memory and system variables.
     for (usize i = 0; i < KF_MEM_SIZE; i++)
         forth->mem[i] = 0;
     forth->here = forth->mem;
@@ -84,31 +146,21 @@ kfStatus kopForthInit(kopForth* forth) {
     forth->pending = NULL;
     forth->state = false;
 
+    // Initialize stacks.
     kfDataStackInit(&forth->d_stack);
     kfRetnStackInit(&forth->r_stack);
 
+    // Setup terminal input buffer.
     for (usize i = 0; i < KF_TIB_SIZE; i++)
         forth->tib[i] = 0;
     forth->tib_len = 0;
     forth->in_offset = 0;
 
-    kfPopulateWords(forth);
+    // Initialize the word dictionary.
+    KF_RETURN_IF_ERROR(kfPopulateWords(forth));
     forth->latest = forth->pending;
     forth->pc = (uint8_t*) forth->debug_words.abt;
 
-    kfWord* latest = (kfWord*) forth->latest;
-    if ((usize) latest->name - (usize) &latest->name_len != 1) {
-        kfBiosWriteStr("Bad name field offset in kfWord struct");
-        return KF_SYSTEM_STRUCT;
-    }
-
-    kfBiosWriteStr("kopForth v0.2, ");
-    kfBiosPrintIsize(sizeof(isize) * 8);
-    kfBiosWriteStr(" Bit, 2025");
-    #ifdef KF_IS_WINDOWS
-        kfBiosWriteStr(", Windows Edition");
-    #endif
-    kfBiosWriteChar('\n');
     kfBiosPrintIsize(forth->here - forth->mem);
     kfBiosWriteStr(" bytes used of ");
     kfBiosPrintIsize(sizeof(forth->mem));

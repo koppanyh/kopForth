@@ -1,22 +1,29 @@
 /*
- * main.c (last modified 2025-05-30)
+ * main.c (last modified 2025-06-11)
  * This is just a demo of how kopForth system is included.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 
+// Include the main kopForth header.
 #include "kopForth.h"
 
 
 
 int main() {
-    // Define your kopForth object.
+    // Initialize the metal and run self checks.
     kfBiosSetup();
-    kopForth forth;
+    kfStatus s = kopForthTest();
+    if (!kfStatusIsOk(s)) {
+        printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+        kfBiosTeardown();
+        return s;
+    }
 
     // Initialize the kopForth system and make sure it succeeded.
-    kfStatus s = kopForthInit(&forth);
+    kopForth forth;
+    s = kopForthInit(&forth);
     if (!kfStatusIsOk(s)) {
         printf("Error: %d (%s)\n", s, kfStatusStr[s]);
         kfBiosTeardown();

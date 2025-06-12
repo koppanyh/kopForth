@@ -15,12 +15,18 @@ The kopForth project (pronounced "cope forth") is intended to be a personal refe
 #include "kopForth.h"
 
 int main() {
-    // Define your kopForth object.
+    // Initialize the metal and run self checks.
     kfBiosSetup();
-    kopForth forth;
+    kfStatus s = kopForthTest();
+    if (!kfStatusIsOk(s)) {
+        printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+        kfBiosTeardown();
+        return s;
+    }
 
     // Initialize the kopForth system and make sure it succeeded.
-    kfStatus s = kopForthInit(&forth);
+    kopForth forth;
+    s = kopForthInit(&forth);
     if (!kfStatusIsOk(s)) {
         printf("Error: %d (%s)\n", s, kfStatusStr[s]);
         kfBiosTeardown();
@@ -89,12 +95,14 @@ Update the Bios!
      - E.g. Writing code on a little endian system that uses C@ to read the LSB of a number stored in memory, this will return the MSB if the code is run on a big endian system
  - Line buffering
    - The non-Windows version uses getchar() and on most systems that seems to wait until the user hits enter before it'll start returning characters to the program
+ - Memory alignment
+   - Because certain forth words have the need to look up fields in the word struct using pointer arithmetic, the kfWord struct has been packed to make it easy to intuit the position of the field
+   - This only causes problems on systems that do not allow unaligned memory access
 
 ## Changelog
 
  - TODO
    - Add debug toggle
-   - Add more startup checks
    - Words to lower case (or case insensitive)
    - Rewrite some native words to be forth words
    - Remove unnecessary words
@@ -111,6 +119,7 @@ Update the Bios!
    - Change `word_def` to be a union
    - Simplified inner interpreter
    - Change flags to be packed in an int
+   - Add more startup checks and pack word struct
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition

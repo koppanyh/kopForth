@@ -2,7 +2,7 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-05-30)
+ * kfBios.h (last modified 2025-06-11)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
@@ -92,6 +92,15 @@ void kfBiosSetup() {
         // TODO see if this actually makes a difference on *nix systems.
         setbuf(stdin, NULL);
     #endif
+
+    // Intro credits.
+    kfBiosWriteStr("kopForth v0.2, ");
+    kfBiosPrintIsize(sizeof(isize) * 8);
+    kfBiosWriteStr(" Bit, 2025");
+    #ifdef KF_IS_WINDOWS
+        kfBiosWriteStr(", Windows Edition");
+    #endif
+    kfBiosWriteChar('\n');
 }
 
 void kfBiosTeardown() {}

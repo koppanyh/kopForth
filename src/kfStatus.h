@@ -2,7 +2,7 @@
 #define KF_STATUS_H
 
 /*
- * kfStatus.h (last modified 2025-05-27)
+ * kfStatus.h (last modified 2025-06-10)
  * The status file defines the enum used for debugging and triggering system
  * exceptions.
  */
@@ -32,12 +32,12 @@ typedef enum kfStatus kfStatus;
         STATUS(KF_DATA_STACK_UNDERFLOW) \
         STATUS(KF_RETN_STACK_OVERFLOW)  \
         STATUS(KF_RETN_STACK_UNDERFLOW) \
-        STATUS(KF_SYSTEM_PTRWIDTH)      \
+        STATUS(KF_TEST_PTR_WIDTH)       \
+        STATUS(KF_TEST_STRUCT)          \
         STATUS(KF_SYSTEM_DONE)          \
-        STATUS(KF_SYSTEM_STRUCT)        \
+        STATUS(KF_SYSTEM_COMP_ONLY)     \
         STATUS(KF_SYSTEM_NOT_IMP)       \
         STATUS(KF_SYSTEM_NULL)          \
-        STATUS(KF_SYSTEM_COMP_ONLY)     \
 
 #define GENERATE_KF_STATUS_ENUM(ENUM)     ENUM,
 #define GENERATE_KF_STATUS_STRING(STRING) #STRING,
