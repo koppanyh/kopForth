@@ -89,7 +89,7 @@ void kfDebug(kopForth* forth) {
     kfBiosPrintPointer(cur_word);
     kfBiosWriteStr(" < ");
     kfDataStackPrint(&forth->d_stack);
-    kfBiosWriteStr(">\n");
+    kfBiosWriteChar('>'); kfBiosCR();
 }
 
 //////////////////////////////////
@@ -99,24 +99,24 @@ void kfDebug(kopForth* forth) {
 //////////////////////////////////
 
 kfStatus kopForthTest() {
-    kfBiosWriteStr("Running self checks...\n");
+    kfBiosWriteStr("Running self checks..."); kfBiosCR();
 
     // Make sure that our data type can actually be converted into a pointer and
     // vice versa.
     if (sizeof(isize) != sizeof(void*) || sizeof(usize) != sizeof(void*)) {
-        kfBiosWriteStr("Integer width mismatch\n");
+        kfBiosWriteStr("Integer width mismatch"); kfBiosCR();
         return KF_TEST_PTR_WIDTH;
     }
     // Makes sure that the pointer to a function is the same as a pointer to
     // memory. This is important to catch Harvard architecture CPUs that split
     // program and data across memories with different address sizes.
     if (sizeof(kfNativeFunc) != sizeof(kfWord*)) {
-        kfBiosWriteStr("Function pointer width mismatch\n");
+        kfBiosWriteStr("Function pointer width mismatch"); kfBiosCR();
         return KF_TEST_PTR_WIDTH;
     }
     // Secondary confirmation to check that the kfWordDef size is correct.
     if (sizeof(kfNativeFunc) != sizeof(kfWordDef)) {
-        kfBiosWriteStr("Union width mismatch with kfWordDef\n");
+        kfBiosWriteStr("Union width mismatch with kfWordDef"); kfBiosCR();
         return KF_TEST_PTR_WIDTH;
     }
 
@@ -125,22 +125,22 @@ kfStatus kopForthTest() {
     kfWord word;
     // Check that the name length variable is only 1 byte.
     if ((usize) word.name - (usize) &word.name_len != 1) {
-        kfBiosWriteStr("Bad `name_len` size in kfWord\n");
+        kfBiosWriteStr("Bad `name_len` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the name char array is actually the size it's supposed to be.
     if ((usize) &word.link - (usize) word.name != KF_MAX_NAME_SIZE) {
-        kfBiosWriteStr("Bad `name` size in kfWord\n");
+        kfBiosWriteStr("Bad `name` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the word link is actually the size of a pointer.
     if ((usize) &word.flags - (usize) &word.link != sizeof(kfWord*)) {
-        kfBiosWriteStr("Bad `link` size in kfWord\n");
+        kfBiosWriteStr("Bad `link` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the flags variable is only 1 byte.
     if ((usize) &word.word_def - (usize) &word.flags != 1) {
-        kfBiosWriteStr("Bad `flags` size in kfWord\n");
+        kfBiosWriteStr("Bad `flags` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
 
@@ -150,14 +150,14 @@ kfStatus kopForthTest() {
     // Test that the native flag is in the right place.
     word.flags.bit_flags.is_native = 1;
     if (word.flags.raw_flags != 0b00000001) {
-        kfBiosWriteStr("Bad `is_native` position in kfWordFlags\n");
+        kfBiosWriteStr("Bad `is_native` position in kfWordFlags"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     word.flags.raw_flags = 0;
     // Test that the immediate flag is in the right place.
     word.flags.bit_flags.is_immediate = 1;
     if (word.flags.raw_flags != 0b00000010) {
-        kfBiosWriteStr("Bad `is_immediate` position in kfWordFlags\n");
+        kfBiosWriteStr("Bad `is_immediate` position in kfWordFlags"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
 
@@ -196,7 +196,7 @@ kfStatus kopForthInit(kopForth* forth) {
     kfBiosPrintIsize(forth->here - forth->mem);
     kfBiosWriteStr(" bytes used of ");
     kfBiosPrintIsize(sizeof(forth->mem));
-    kfBiosWriteChar('\n');
+    kfBiosCR();
 
     return KF_STATUS_OK;
 }

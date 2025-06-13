@@ -73,6 +73,10 @@ void kfBiosWriteChar(isize value) {
     printf("%c", (int) value);
 }
 
+void kfBiosCR() {
+    kfBiosWriteChar(KF_NL);
+}
+
 isize kfBiosReadChar() {
     #ifdef KF_IS_WINDOWS
         // We use getch() on Windows to get around the input buffering issue.
@@ -111,7 +115,7 @@ void kfBiosSetup() {
     #ifdef KF_IS_WINDOWS
         kfBiosWriteStr(", Windows Edition");
     #endif
-    kfBiosWriteChar('\n');
+    kfBiosCR();
 }
 
 void kfBiosTeardown() {}
