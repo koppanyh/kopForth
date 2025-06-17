@@ -102,7 +102,6 @@ Update the Bios!
 ## Changelog
 
  - TODO
-   - Words to lower case (or case insensitive)
    - Rewrite some native words to be forth words
    - Remove unnecessary words
    - Add file input support so words can be loaded
@@ -120,6 +119,7 @@ Update the Bios!
    - Change flags to be packed in an int
    - Add more startup checks and pack word struct
    - Add debug toggle
+   - Update word search to be case insensitive
  - v0.1
    - TLDR: Initial public release
    - MVP word set, supports word definition

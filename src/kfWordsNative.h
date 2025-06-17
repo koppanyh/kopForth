@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-06-12)
+ * kfWordsNative.h (last modified 2025-06-17)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -329,19 +329,29 @@ kfStatus W_Fnd(kopForth* forth) {  // c-addr -- c-addr 0 | xt 1 | xt -1
     KF_DATA_POP(f_str);
     uint8_t str_ct = *f_str;
     uint8_t* str_head = f_str + 1;
-    isize tmp;
     kfWord* word = (kfWord*) forth->latest;
     while (word != NULL && str_ct != 0) {
-        KF_DATA_PUSH(str_head);
-        KF_DATA_PUSH(str_ct);
-        KF_DATA_PUSH(word->name);
-        KF_DATA_PUSH(word->name_len);
-        KF_RETURN_IF_ERROR(W_Cmp(forth));
-        KF_DATA_POP(tmp);
-        if (tmp == 0) {
-            KF_DATA_PUSH(word);
-            KF_DATA_PUSH(word->flags.bit_flags.is_immediate ? 1 : -1);
-            return KF_STATUS_OK;
+        if (word->name_len == str_ct) {
+            bool match = true;
+            for (uint8_t i = 0; i < str_ct; i++) {
+                uint8_t c1 = str_head[i];
+                uint8_t c2 = word->name[i];
+                if (c1 >= 'A' && c1 <= 'Z') {
+                    c1 += 32;
+                }
+                if (c2 >= 'A' && c2 <= 'Z') {
+                    c2 += 32;
+                }
+                if (c1 != c2) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                KF_DATA_PUSH(word);
+                KF_DATA_PUSH(word->flags.bit_flags.is_immediate ? 1 : -1);
+                return KF_STATUS_OK;
+            }
         }
         word = word->link;
     }
@@ -477,6 +487,7 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     // TODO Null check.
 
     wn->ext = kopForthAddNativeWord(forth, "EXIT",      W_Ext, false);  // TODO make compile only.
+    wn->ext->link = NULL;
     wn->lit = kopForthAddNativeWord(forth, "(LIT)",     W_Lit, false);  // TODO make compile only.
     wn->sub = kopForthAddNativeWord(forth, "-",         W_Sub, false);
     wn->mul = kopForthAddNativeWord(forth, "*",         W_Mul, false);
