@@ -106,6 +106,8 @@ Update the Bios!
    - Remove unnecessary words
    - Add file input support so words can be loaded
    - Add tests
+ - v0.3
+   - Add version word
  - v0.2
    - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix

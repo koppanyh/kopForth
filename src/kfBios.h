@@ -2,7 +2,7 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-06-12)
+ * kfBios.h (last modified 2025-06-17)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
@@ -39,25 +39,34 @@ typedef intptr_t isize;
 
 
 
+// Versioning info.
+#define KF_VER_MAJOR       0
+#define KF_VER_MINOR       2
+#define KF_VER_PATCH       1
+#define KF_YEAR_STR        "2025"
 // How many items to allocate for the data stack.
 #define KF_DATA_STACK_SIZE 64
 // How many items to allocate for the return stack.
 #define KF_RETN_STACK_SIZE 32
 // How many bytes to allocate for the terminal input buffer.
-#define KF_TIB_SIZE 80
+#define KF_TIB_SIZE        80
 // How many bytes to allocate for the working memory (plus word definitions).
-#define KF_MEM_SIZE 4096*sizeof(void*)
+#define KF_MEM_SIZE        4096*sizeof(void*)
 // How many bytes to allocate for the names of words (including \0).
-#define KF_MAX_NAME_SIZE 16
+#define KF_MAX_NAME_SIZE   16
 // The character to use for return (keyboard input).
 #ifdef KF_IS_WINDOWS
     // In Windows, the getch() function returns '\r' on keyboard return.
-    #define KF_CR '\r'
+    #define KF_CR          '\r'
 #else
-    #define KF_CR '\n'
+    #define KF_CR          '\n'
 #endif
 // The character to use for newline (terminal output).
-#define KF_NL '\n'
+#define KF_NL              '\n'
+
+#define KF_TO_STR(X)            #X
+#define KF_VER_TO_STR(X, Y, Z)  "v"KF_TO_STR(X)"."KF_TO_STR(Y)"."KF_TO_STR(Z)
+#define KF_VER_STR              KF_VER_TO_STR(KF_VER_MAJOR, KF_VER_MINOR, KF_VER_PATCH)
 
 
 
@@ -109,9 +118,9 @@ void kfBiosSetup() {
     #endif
 
     // Intro credits.
-    kfBiosWriteStr("kopForth v0.2, ");
+    kfBiosWriteStr("kopForth " KF_VER_STR ", ");
     kfBiosPrintIsize(sizeof(isize) * 8);
-    kfBiosWriteStr(" Bit, 2025");
+    kfBiosWriteStr(" Bit, " KF_YEAR_STR);
     #ifdef KF_IS_WINDOWS
         kfBiosWriteStr(", Windows Edition");
     #endif
