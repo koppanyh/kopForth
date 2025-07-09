@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-06-17)
+ * kfWordsNative.h (last modified 2025-07-01)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -39,7 +39,6 @@ struct kfWordsNative {
     kfWord* wrd;
     kfWord* typ;
     kfWord* cre;
-    kfWord* imm;
     kfWord* cmp;
     kfWord* fnd;
     kfWord* mss;
@@ -509,7 +508,6 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     wn->wrd = kopForthAddNativeWord(forth, "WORD",      W_Wrd, false);
     wn->typ = kopForthAddNativeWord(forth, "TYPE",      W_Typ, false);
     wn->cre = kopForthAddNativeWord(forth, "CREATE",    W_Cre, false);
-    wn->imm = kopForthAddNativeWord(forth, "IMMEDIATE", W_Imm, true );
     wn->cmp = kopForthAddNativeWord(forth, "COMPARE",   W_Cmp, false);
     wn->fnd = kopForthAddNativeWord(forth, "FIND",      W_Fnd, false);
     wn->mss = kopForthAddNativeWord(forth, "M*/",       W_Mss, false);

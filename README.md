@@ -104,6 +104,7 @@ Update the Bios!
  - TODO
    - Rewrite some native words to be forth words
    - Remove unnecessary words
+   - Add conditional words
    - Add file input support so words can be loaded
    - Add tests
  - v0.3

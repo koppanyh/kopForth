@@ -2,7 +2,7 @@
 #define KF_TYPE_H
 
 /*
- * kfType.h (last modified 2025-06-12)
+ * kfType.h (last modified 2025-07-01)
  * This contains the main structs and types used by the kopForth system, along
  * with their helper functions.
  */
@@ -85,6 +85,8 @@ union kfWordDef {
     kfWord*      forth[1];  // List of word addresses to execute.
 };
 
+#define KF_FLAG_MASK_NATIVE    0b00000001
+#define KF_FLAG_MASK_IMMEDIATE 0b00000010
 struct kfWordBitFlags {
     uint8_t   is_native    : 1;  // Determines if the word points to a function or a list of words.
     uint8_t   is_immediate : 1;  // Determines if the word is executed at compile time.
@@ -99,6 +101,11 @@ union kfWordFlags {
 // functionality of each Forth word in memory.
 // Must be packed so that we know the field offsets and the words defined in
 // forth will be able to know where to access a field with pointer arithmetic.
+#define KF_WORD_NAME_LEN_OFFSET 0
+#define KF_WORD_NAME_OFFSET     (KF_WORD_NAME_LEN_OFFSET + sizeof(uint8_t))
+#define KF_WORD_LINK_OFFSET     (KF_WORD_NAME_OFFSET     + sizeof(char[KF_MAX_NAME_SIZE]))
+#define KF_WORD_FLAGS_OFFSET    (KF_WORD_LINK_OFFSET     + sizeof(kfWord*))
+#define KF_WORD_WORD_DEF_OFFSET (KF_WORD_FLAGS_OFFSET    + sizeof(kfWordFlags))
 struct kfWord {
     uint8_t     name_len;                // How long the name is (not including \0).
     char        name[KF_MAX_NAME_SIZE];  // The name of the word.

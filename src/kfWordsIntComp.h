@@ -2,7 +2,7 @@
 #define KF_WORDS_INT_COMP_H
 
 /*
- * kfWordsIntComp.h (last modified 2025-06-04)
+ * kfWordsIntComp.h (last modified 2025-07-01)
  * This contains the word definitions for the shell interpreter and compiler.
  */
 
@@ -28,6 +28,7 @@ struct kfWordsIntComp {
     kfWord* enf;
     kfWord* col;
     kfWord* sem;
+    kfWord* imm;
     kfWord* inp;
     kfWord* qut;
     //kfWord* evl;
@@ -91,6 +92,14 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRD(wi->rev); WRD(wi->obr);                       // REVEAL POSTPONE [
         WRD(wn->ext);
         wi->sem->flags.bit_flags.is_immediate = 1;
+    wi->imm = kopForthAddWord(forth, "IMMEDIATE");        // ( -- )
+        WRD(wv->ppt); WRD(wn->att);                       // PP @
+        LIT(KF_WORD_FLAGS_OFFSET); WRD(wm->add);          // 25 +
+        WRD(wn->dup); WRD(wn->cat);                       // DUP C@
+        LIT(KF_FLAG_MASK_IMMEDIATE); WRD(wm->orr);        // 2 OR
+        WRD(wn->swp); WRD(wn->cex);                       // SWAP C!
+        WRD(wn->ext);
+        wi->imm->flags.bit_flags.is_immediate = 1;
 
     wi->inp = kopForthAddWord(forth, "INTERPRET"); {             // ( -- )
         LIT(0); WRD(wv->gin); WRD(wn->exc);                      // 0 >IN !                                   (  )

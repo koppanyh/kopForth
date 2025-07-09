@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-06-12)
+ * kopForth.h (last modified 2025-07-01)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -123,23 +123,28 @@ kfStatus kopForthTest() {
     // Tests to make sure the compiler isn't doing any funny business. The words
     // written in forth depend on these field positions being correct.
     kfWord word;
+    // Check that the fields actually start at the beginning of the word def.
+    if ((usize) &word.name_len - (usize) &word != KF_WORD_NAME_LEN_OFFSET) {
+        kfBiosWriteStr("Bad `name_len` offset in kfWord"); kfBiosCR();
+        return KF_TEST_STRUCT;
+    }
     // Check that the name length variable is only 1 byte.
-    if ((usize) word.name - (usize) &word.name_len != 1) {
+    if ((usize) word.name - (usize) &word != KF_WORD_NAME_OFFSET) {
         kfBiosWriteStr("Bad `name_len` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the name char array is actually the size it's supposed to be.
-    if ((usize) &word.link - (usize) word.name != KF_MAX_NAME_SIZE) {
+    if ((usize) &word.link - (usize) &word != KF_WORD_LINK_OFFSET) {
         kfBiosWriteStr("Bad `name` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the word link is actually the size of a pointer.
-    if ((usize) &word.flags - (usize) &word.link != sizeof(kfWord*)) {
+    if ((usize) &word.flags - (usize) &word != KF_WORD_FLAGS_OFFSET) {
         kfBiosWriteStr("Bad `link` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the flags variable is only 1 byte.
-    if ((usize) &word.word_def - (usize) &word.flags != 1) {
+    if ((usize) &word.word_def - (usize) &word != KF_WORD_WORD_DEF_OFFSET) {
         kfBiosWriteStr("Bad `flags` size in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
@@ -149,14 +154,14 @@ kfStatus kopForthTest() {
     word.flags.raw_flags = 0;
     // Test that the native flag is in the right place.
     word.flags.bit_flags.is_native = 1;
-    if (word.flags.raw_flags != 0b00000001) {
+    if (word.flags.raw_flags != KF_FLAG_MASK_NATIVE) {
         kfBiosWriteStr("Bad `is_native` position in kfWordFlags"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     word.flags.raw_flags = 0;
     // Test that the immediate flag is in the right place.
     word.flags.bit_flags.is_immediate = 1;
-    if (word.flags.raw_flags != 0b00000010) {
+    if (word.flags.raw_flags != KF_FLAG_MASK_IMMEDIATE) {
         kfBiosWriteStr("Bad `is_immediate` position in kfWordFlags"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
