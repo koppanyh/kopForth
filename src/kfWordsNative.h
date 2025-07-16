@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-07-01)
+ * kfWordsNative.h (last modified 2025-07-15)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -38,7 +38,7 @@ struct kfWordsNative {
     kfWord* acc;
     kfWord* wrd;
     kfWord* typ;
-    kfWord* cre;
+    kfWord* pcr;
     kfWord* cmp;
     kfWord* fnd;
     kfWord* mss;
@@ -278,10 +278,7 @@ kfStatus W_Typ(kopForth* forth) {  // addr u --
     return KF_STATUS_OK;
 }
 
-kfStatus W_Cre(kopForth* forth) {  // --
-    KF_DATA_PUSH(' ');
-    KF_RETURN_IF_ERROR(W_Wrd(forth));
-    KF_RETURN_IF_ERROR(W_Drp(forth));
+kfStatus W_Pcr(kopForth* forth) {  // --
     if (kopForthCreateWord(forth) == NULL) {
         kfBiosWriteStr("CREATE FAILED");
         return KF_SYSTEM_NULL;
@@ -507,7 +504,7 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     wn->acc = kopForthAddNativeWord(forth, "ACCEPT",    W_Acc, false);
     wn->wrd = kopForthAddNativeWord(forth, "WORD",      W_Wrd, false);
     wn->typ = kopForthAddNativeWord(forth, "TYPE",      W_Typ, false);
-    wn->cre = kopForthAddNativeWord(forth, "CREATE",    W_Cre, false);
+    wn->pcr = kopForthAddNativeWord(forth, "(CREATE)",  W_Pcr, false);
     wn->cmp = kopForthAddNativeWord(forth, "COMPARE",   W_Cmp, false);
     wn->fnd = kopForthAddNativeWord(forth, "FIND",      W_Fnd, false);
     wn->mss = kopForthAddNativeWord(forth, "M*/",       W_Mss, false);

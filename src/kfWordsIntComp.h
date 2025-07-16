@@ -2,7 +2,7 @@
 #define KF_WORDS_INT_COMP_H
 
 /*
- * kfWordsIntComp.h (last modified 2025-07-01)
+ * kfWordsIntComp.h (last modified 2025-07-16)
  * This contains the word definitions for the shell interpreter and compiler.
  */
 
@@ -26,6 +26,15 @@ struct kfWordsIntComp {
     kfWord* cbr;
     kfWord* abt;
     kfWord* enf;
+    kfWord* lnk;
+    kfWord* fgs;
+    kfWord* cod;
+    kfWord* bod;
+    kfWord* urv;
+    kfWord* dod;
+    kfWord* pdo;
+    kfWord* doe;
+    kfWord* cre;
     kfWord* col;
     kfWord* sem;
     kfWord* imm;
@@ -82,10 +91,49 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         PRSTR("ERROR: '");                                // ." ERROR: "
         WRD(ws->cnt); WRD(wn->typ);                       // COUNT TYPE
         PRSTR("' word not found");                        // ."  word not found"
+        WRD(wv->lat); WRD(wv->ppt); WRD(wn->exc);         // LATEST PP !
         WRD(ws->crr); WRD(wi->abt);                       // CR ABORT
         WRD(wn->ext);
+    wi->lnk = kopForthAddWord(forth, ">LINK");            // ( xt -- a )
+        LIT(KF_WORD_LINK_OFFSET); WRD(wm->add);           // 17 +
+        WRD(wn->ext);
+    wi->fgs = kopForthAddWord(forth, ">FLAGS");           // ( xt -- a )
+        LIT(KF_WORD_FLAGS_OFFSET); WRD(wm->add);           // 25 +
+        WRD(wn->ext);
+    wi->cod = kopForthAddWord(forth, ">CODE");            // ( xt -- a )
+        LIT(KF_WORD_CODE_OFFSET); WRD(wm->add);           // 26 +
+        WRD(wn->ext);
+    wi->bod = kopForthAddWord(forth, ">BODY");            // ( xt -- a )
+        LIT(KF_WORD_DATA_OFFSET); WRD(wm->add);           // 34 +
+        WRD(wn->ext);
+    wi->urv = kopForthAddWord(forth, "UNREVEAL");         // ( -- )
+        WRD(wv->lat); WRD(wi->lnk); WRD(wn->att);         // LATEST >LINK @
+        WRD(wv->lpt); WRD(wn->exc);                       // LP !
+        WRD(wn->ext);
+    wi->dod = kopForthAddWord(forth, "DODOES");           // ( -- a )
+        WRD(wn->rpo); WRD(wn->rpo); WRD(wn->dup);         // R> R> DUP
+        WRD(wn->rpu); WRD(wn->swp); WRD(wn->rpu);         // >R SWAP >R
+        LIT(sizeof(isize)); WRD(wn->sub);                 // [ 1 CELLS ] LITERAL -
+        WRD(wn->att); WRD(wi->bod);                       // @ >BODY
+        WRD(wn->ext);
+    wi->pdo = kopForthAddWord(forth, "(DOES>)");          // ( -- )
+        WRD(wn->rpo); WRD(wv->ppt); WRD(wn->att);         // R> PP @
+        WRD(wi->cod); WRD(wn->exc);                       // >CODE !
+        WRD(wn->ext);
+    wi->doe = kopForthAddWord(forth, "DOES>");            // ( -- )
+        LIT(wi->pdo); WRD(wi->cpl);                       // ['] (DOES>) COMPILE,
+        LIT(wi->dod); WRD(wi->cpl);                       // ['] DODOES COMPILE,
+        WRD(wn->ext);
+        wi->doe->flags.bit_flags.is_immediate = 1;
+    wi->cre = kopForthAddWord(forth, "CREATE");           // ( -- )
+        WRD(ws->bla); WRD(wn->wrd);                       // BL WORD
+        WRD(wn->drp); WRD(wn->pcr);                       // DROP (CREATE)
+        WRD(wi->pdo); WRD(wi->dod);                       // DOES>
+        WRD(wn->ext);
     wi->col = kopForthAddWord(forth, ":");                // ( -- )
-        WRD(wn->cre); WRD(wi->cbr);                       // CREATE POSTPONE ]
+        WRD(wi->cre); WRD(wi->urv); WRD(wi->cbr);         // CREATE UNREVEAL POSTPONE ]
+        WRD(wv->her); WRD(wv->ppt); WRD(wn->att);         // HERE PP @
+        WRD(wi->cod); WRD(wn->exc);                       // >CODE !
         WRD(wn->ext);
     wi->sem = kopForthAddWord(forth, ";");                // ( -- )
         LIT(wn->ext); WRD(wi->cpl);                       // ['] EXIT COMPILE,
@@ -93,8 +141,7 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRD(wn->ext);
         wi->sem->flags.bit_flags.is_immediate = 1;
     wi->imm = kopForthAddWord(forth, "IMMEDIATE");        // ( -- )
-        WRD(wv->ppt); WRD(wn->att);                       // PP @
-        LIT(KF_WORD_FLAGS_OFFSET); WRD(wm->add);          // 25 +
+        WRD(wv->ppt); WRD(wn->att); WRD(wi->fgs);         // PP @ >FLAGS
         WRD(wn->dup); WRD(wn->cat);                       // DUP C@
         LIT(KF_FLAG_MASK_IMMEDIATE); WRD(wm->orr);        // 2 OR
         WRD(wn->swp); WRD(wn->cex);                       // SWAP C!

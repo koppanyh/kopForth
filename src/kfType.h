@@ -2,7 +2,7 @@
 #define KF_TYPE_H
 
 /*
- * kfType.h (last modified 2025-07-01)
+ * kfType.h (last modified 2025-07-16)
  * This contains the main structs and types used by the kopForth system, along
  * with their helper functions.
  */
@@ -24,12 +24,12 @@
 
 
 // Necessary typedef declarations for types.
-typedef struct kopForth       kopForth;
-typedef struct kfWord         kfWord;
 typedef struct kfDebugWords   kfDebugWords;
+typedef struct kopForth       kopForth;
+typedef union  kfWordCode     kfWordCode;
 typedef struct kfWordBitFlags kfWordBitFlags;
-typedef union  kfWordDef      kfWordDef;
 typedef union  kfWordFlags    kfWordFlags;
+typedef struct kfWord         kfWord;
 
 // This is a function pointer type for native word implementations. It takes a
 // kopForth pointer, does something with it, and returns a status.
@@ -77,12 +77,9 @@ struct kopForth {
 // This is the type that actually defines what the word does. It either calls a
 // native function, or it rolls through a list of word addresses and executes
 // them in sequence.
-// It's important that this comes at the end of the `kfWord` so the `forth`
-// field can be expanded past its boundary of 1 item without colliding with any
-// of the other fields in the word definition.
-union kfWordDef {
-    kfNativeFunc native;    // Pointer to a native function.
-    kfWord*      forth[1];  // List of word addresses to execute.
+union kfWordCode {
+    kfNativeFunc native;  // Pointer to a native function.
+    kfWord**     forth;   // Pointer to start of forth code to be executed.
 };
 
 #define KF_FLAG_MASK_NATIVE    0b00000001
@@ -105,13 +102,18 @@ union kfWordFlags {
 #define KF_WORD_NAME_OFFSET     (KF_WORD_NAME_LEN_OFFSET + sizeof(uint8_t))
 #define KF_WORD_LINK_OFFSET     (KF_WORD_NAME_OFFSET     + sizeof(char[KF_MAX_NAME_SIZE]))
 #define KF_WORD_FLAGS_OFFSET    (KF_WORD_LINK_OFFSET     + sizeof(kfWord*))
-#define KF_WORD_WORD_DEF_OFFSET (KF_WORD_FLAGS_OFFSET    + sizeof(kfWordFlags))
+#define KF_WORD_CODE_OFFSET     (KF_WORD_FLAGS_OFFSET    + sizeof(kfWordFlags))
+#define KF_WORD_DATA_OFFSET     (KF_WORD_CODE_OFFSET     + sizeof(kfWordCode))
 struct kfWord {
     uint8_t     name_len;                // How long the name is (not including \0).
     char        name[KF_MAX_NAME_SIZE];  // The name of the word.
     kfWord*     link;                    // Linked-list pointer to the previous word.
     kfWordFlags flags;                   // The flags used for runtime and compile time behaviors.
-    kfWordDef   word_def;                // The actual definition. This needs to be at the end.
+    kfWordCode  code;                    // Code pointer, says what to run when word is executed.
+    // It's important that `data` comes at the end of the `kfWord` so it can be
+    // expanded past its boundary of 1 item without colliding with any of the
+    // other fields in the word definition.
+    kfWord*     data[1];                 // The non-native word definition.
 }__attribute__((packed));
 
 
@@ -124,15 +126,17 @@ bool kfCanFitInMem(kopForth* forth, usize length) {
 }
 
 kfWord* kopForthCreateWord(kopForth* forth) {
+    forth->latest = forth->pending;
     kfWord* word = (kfWord*) forth->here;
     if (!kfCanFitInMem(forth, sizeof(kfWord)))
         return NULL;
-    forth->here += sizeof(kfWord) - sizeof(kfWordDef);
-    forth->latest = forth->pending;
+    forth->here += sizeof(kfWord) - sizeof(kfWord*[1]);
     word->link = forth->latest;
     forth->pending = word;
+    forth->latest = word;
     word->flags.bit_flags.is_native = false;
     word->flags.bit_flags.is_immediate = false;
+    word->code.forth = &(word->data[0]);
     return word;
 }
 
@@ -177,7 +181,7 @@ kfWord* kopForthAddNativeWord(kopForth* forth, char* name, kfNativeFunc func_ptr
     kfWord* word = kopForthAddWord(forth, name);
     word->flags.bit_flags.is_native = true;
     word->flags.bit_flags.is_immediate = is_immediate;
-    kopForthAddIsize(forth, (isize) func_ptr);
+    word->code.native = func_ptr;
     return word;
 }
 

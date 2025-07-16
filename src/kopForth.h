@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-07-01)
+ * kopForth.h (last modified 2025-07-15)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -115,8 +115,8 @@ kfStatus kopForthTest() {
         return KF_TEST_PTR_WIDTH;
     }
     // Secondary confirmation to check that the kfWordDef size is correct.
-    if (sizeof(kfNativeFunc) != sizeof(kfWordDef)) {
-        kfBiosWriteStr("Union width mismatch with kfWordDef"); kfBiosCR();
+    if (sizeof(kfNativeFunc) != sizeof(kfWordCode)) {
+        kfBiosWriteStr("Union width mismatch with kfWordCode"); kfBiosCR();
         return KF_TEST_PTR_WIDTH;
     }
 
@@ -130,22 +130,26 @@ kfStatus kopForthTest() {
     }
     // Check that the name length variable is only 1 byte.
     if ((usize) word.name - (usize) &word != KF_WORD_NAME_OFFSET) {
-        kfBiosWriteStr("Bad `name_len` size in kfWord"); kfBiosCR();
+        kfBiosWriteStr("Bad `name` offset in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the name char array is actually the size it's supposed to be.
     if ((usize) &word.link - (usize) &word != KF_WORD_LINK_OFFSET) {
-        kfBiosWriteStr("Bad `name` size in kfWord"); kfBiosCR();
+        kfBiosWriteStr("Bad `link` offset in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the word link is actually the size of a pointer.
     if ((usize) &word.flags - (usize) &word != KF_WORD_FLAGS_OFFSET) {
-        kfBiosWriteStr("Bad `link` size in kfWord"); kfBiosCR();
+        kfBiosWriteStr("Bad `flags` offset in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
     // Check that the flags variable is only 1 byte.
-    if ((usize) &word.word_def - (usize) &word != KF_WORD_WORD_DEF_OFFSET) {
-        kfBiosWriteStr("Bad `flags` size in kfWord"); kfBiosCR();
+    if ((usize) &word.code - (usize) &word != KF_WORD_CODE_OFFSET) {
+        kfBiosWriteStr("Bad `code` offset in kfWord"); kfBiosCR();
+        return KF_TEST_STRUCT;
+    }
+    if ((usize) &word.data - (usize) &word != KF_WORD_DATA_OFFSET) {
+        kfBiosWriteStr("Bad `data` offset in kfWord"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
 
@@ -212,10 +216,10 @@ kfStatus kopForthTick(kopForth* forth) {
     }
     kfWord* cur_word = (kfWord*) forth->pc;
     if (cur_word->flags.bit_flags.is_native) {
-        KF_RETURN_IF_ERROR(cur_word->word_def.native(forth));
+        KF_RETURN_IF_ERROR(cur_word->code.native(forth));
         KF_RETURN_IF_ERROR(kfRetnStackPop(&forth->r_stack, (void**) &forth->pc));
     } else {
-        forth->pc = (uint8_t*) cur_word->word_def.forth;
+        forth->pc = (uint8_t*) cur_word->code.forth;
     }
     KF_RETURN_IF_ERROR(kfRetnStackPush(&forth->r_stack, forth->pc + sizeof(kfWord*)));
     forth->pc = *(uint8_t**) forth->pc;
