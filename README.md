@@ -108,7 +108,8 @@ Update the Bios!
    - Add file input support so words can be loaded
    - Add tests
  - v0.3
-   - Add version word
+   - Add VERSION, DUMP words
+   - Fixed CREATE word to be standard compliant
  - v0.2
    - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix

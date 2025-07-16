@@ -53,6 +53,7 @@ struct kfWordsNative {
     kfWord* dos;
     kfWord* crs;
     kfWord* cds;
+    kfWord* dmp;
 };
 
 
@@ -476,6 +477,15 @@ kfStatus W_Dos(kopForth* forth) {  // --
     return KF_STATUS_OK;
 }
 
+kfStatus W_Dmp(kopForth* forth) {  // addr u --
+    uint8_t* a;
+    usize b;
+    KF_DATA_POP(b);
+    KF_DATA_POP(a);
+    kfBiosDumpMem(a, b);
+    return KF_STATUS_OK;
+}
+
 
 
 // Fill native words into memory.
@@ -517,6 +527,7 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     wn->dqu = kopForthAddNativeWord(forth, ".\"",       W_Dqu, true );
     wn->bye = kopForthAddNativeWord(forth, "BYE",       W_Bye, false);
     wn->dos = kopForthAddNativeWord(forth, ".S",        W_Dos, false);
+    wn->dmp = kopForthAddNativeWord(forth, "DUMP",      W_Dmp, false);
 
     wn->crs = kopForthAddNativeWord(forth, "(CLR-RET-STACK)", W_Crs, false);
     wn->cds = kopForthAddNativeWord(forth, "(CLR-DAT-STACK)", W_Cds, false);
