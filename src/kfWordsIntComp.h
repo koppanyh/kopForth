@@ -82,23 +82,28 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRD(wv->tru); WRD(wv->sta); WRD(wn->exc);         // TRUE STATE !
         WRD(wn->ext);
     wi->abt = kopForthAddWord(forth, "ABORT");            // ( * -- )
-        // TODO undo any words being constructed
-        WRD(wn->crs);                                     // (CLR-RET-STACK)
+        WRD(wv->lat); WRD(wv->ppt); WRD(wn->att);         // LATEST PP @
+        WRD(wn->lss); LITADDR(abt01, wn->zbr, 0);         // < IF
+        WRD(wv->ppt); WRD(wn->att);                       //     PP @ DP !
+        WRD(wv->dpt); WRD(wn->exc);
+        WRD(wv->lat); WRD(wv->ppt); WRD(wn->exc);         //     LATEST PP !
+                                                          // THEN
+        WRDADDR(abt02, wn->crs);                          // (CLR-RET-STACK)
         WRD(wn->cds);                                     // (CLR-DAT-STACK)
         WRDADDR(abt00, wn->ext);                          // QUIT
+        *abt01 = (isize) abt02;
     wi->enf = kopForthAddWord(forth, "(ERR-NOT-FOUND)");  // ( a -- )
         WRD(ws->crr);                                     // CR
         PRSTR("ERROR: '");                                // ." ERROR: "
         WRD(ws->cnt); WRD(wn->typ);                       // COUNT TYPE
         PRSTR("' word not found");                        // ."  word not found"
-        WRD(wv->lat); WRD(wv->ppt); WRD(wn->exc);         // LATEST PP !
         WRD(ws->crr); WRD(wi->abt);                       // CR ABORT
         WRD(wn->ext);
     wi->lnk = kopForthAddWord(forth, ">LINK");            // ( xt -- a )
         LIT(KF_WORD_LINK_OFFSET); WRD(wm->add);           // 17 +
         WRD(wn->ext);
     wi->fgs = kopForthAddWord(forth, ">FLAGS");           // ( xt -- a )
-        LIT(KF_WORD_FLAGS_OFFSET); WRD(wm->add);           // 25 +
+        LIT(KF_WORD_FLAGS_OFFSET); WRD(wm->add);          // 25 +
         WRD(wn->ext);
     wi->cod = kopForthAddWord(forth, ">CODE");            // ( xt -- a )
         LIT(KF_WORD_CODE_OFFSET); WRD(wm->add);           // 26 +

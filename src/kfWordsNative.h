@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-07-15)
+ * kfWordsNative.h (last modified 2025-07-16)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -494,7 +494,7 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
 
     wn->ext = kopForthAddNativeWord(forth, "EXIT",      W_Ext, false);  // TODO make compile only.
     wn->ext->link = NULL;
-    wn->lit = kopForthAddNativeWord(forth, "(LIT)",     W_Lit, false);  // TODO make compile only.
+    wn->lit = kopForthAddNativeWord(forth, "(LITERAL)", W_Lit, false);  // TODO make compile only.
     wn->sub = kopForthAddNativeWord(forth, "-",         W_Sub, false);
     wn->mul = kopForthAddNativeWord(forth, "*",         W_Mul, false);
     wn->dot = kopForthAddNativeWord(forth, ".",         W_Dot, false);
