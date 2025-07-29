@@ -2,7 +2,7 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-07-16)
+ * kfBios.h (last modified 2025-07-23)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
@@ -70,6 +70,10 @@ typedef intptr_t isize;
 
 
 
+/////////////
+// BIOS IO //
+/////////////
+
 void kfBiosPrintIsize(isize value) {
     printf("%" PRIdPTR, value);
 }
@@ -87,12 +91,16 @@ void kfBiosCR() {
 }
 
 isize kfBiosReadChar() {
+    int c;
     #ifdef KF_IS_WINDOWS
         // We use getch() on Windows to get around the input buffering issue.
-        return getch();
+        c = getch();
     #else
-        return getchar();
+        c = getchar();
     #endif
+    if (c == KF_CR)  // Normalize newlines to '\n' character.
+        return KF_NL;
+    return c;
 }
 
 void kfBiosWriteStr(char* value) {
@@ -108,6 +116,12 @@ void kfBiosWriteStrLen(char* value, usize len) {
         value++;
     }
 }
+
+
+
+////////////////
+// BIOS Debug //
+////////////////
 
 void kfBiosDumpMem(uint8_t* value, usize len) {
     char hex[] = "0123456789ABCDEF";
@@ -127,6 +141,12 @@ void kfBiosDumpMem(uint8_t* value, usize len) {
     }
     kfBiosCR();
 }
+
+
+
+/////////////////////////
+// BIOS Setup/Teardown //
+/////////////////////////
 
 void kfBiosSetup() {
     setbuf(stdout, NULL);

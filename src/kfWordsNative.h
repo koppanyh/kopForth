@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-07-16)
+ * kfWordsNative.h (last modified 2025-07-23)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -216,7 +216,7 @@ kfStatus W_Acc(kopForth* forth) {  // addr u1 -- u2
     KF_DATA_POP(addr);
     while (true) {
         isize c = kfBiosReadChar();
-        if (c == KF_CR)
+        if (c == KF_NL)
             break;
         if (c == '\b') {
             if (u2 > 0)
