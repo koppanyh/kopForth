@@ -2,7 +2,7 @@
 #define KF_WORDS_STACK_MEM_H
 
 /*
- * kfWordsStackMem.h (last modified 2025-05-29)
+ * kfWordsStackMem.h (last modified 2025-07-29)
  * This contains the word definitions for stack and address operators.
  */
 
@@ -15,24 +15,24 @@
 // Pointers to words created in this file, for usage in defining other words.
 typedef struct kfWordsStackMem kfWordsStackMem;
 struct kfWordsStackMem {
-    kfWord* ovr;
-    kfWord* rot;
-    kfWord* tdr;
-    kfWord* tdu;
-    kfWord* add;
-    kfWord* inv;
-    kfWord* orr;
-    kfWord* and;
-    kfWord* zeq;
-    kfWord* neq;
-    kfWord* leq;
-    kfWord* gtr;
-    kfWord* geq;
-    kfWord* cls;
-    kfWord* pex;
-    kfWord* alt;
-    kfWord* com;
-    kfWord* cco;
+    kfWord* ovr;  // OVER
+    kfWord* rot;  // ROT
+    kfWord* tdr;  // 2DROP
+    kfWord* tdu;  // 2DUP
+    kfWord* add;  // +
+    kfWord* inv;  // INVERT
+    kfWord* orr;  // OR
+    kfWord* and;  // AND
+    kfWord* zeq;  // 0=
+    kfWord* neq;  // <>
+    kfWord* leq;  // <=
+    kfWord* gtr;  // >
+    kfWord* geq;  // >=
+    kfWord* cls;  // CELLS
+    kfWord* pex;  // +!
+    kfWord* alt;  // ALLOT
+    kfWord* com;  // ,
+    kfWord* cco;  // C,
 };
 
 

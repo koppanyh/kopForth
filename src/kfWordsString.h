@@ -2,7 +2,7 @@
 #define KF_WORDS_STRING_H
 
 /*
- * kfWordsString.h (last modified 2025-05-29)
+ * kfWordsString.h (last modified 2025-07-29)
  * This contains the word definitions for string/char related stuff.
  */
 
@@ -16,14 +16,14 @@
 // Pointers to words created in this file, for usage in defining other words.
 typedef struct kfWordsString kfWordsString;
 struct kfWordsString {
-    kfWord* crr;
-    kfWord* bla;
-    kfWord* spa;
-    kfWord* cnt;
-    kfWord* sst;
-    kfWord* dig;
-    kfWord* num;
-    kfWord* snu;
+    kfWord* crr;  // CR
+    kfWord* bla;  // BL
+    kfWord* spa;  // SPACE
+    kfWord* cnt;  // COUNT
+    kfWord* sst;  // /STRING
+    kfWord* dig;  // DIGIT?
+    kfWord* num;  // >NUMBER
+    kfWord* snu;  // S>NUMBER?
 };
 
 

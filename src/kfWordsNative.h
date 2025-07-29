@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-07-23)
+ * kfWordsNative.h (last modified 2025-07-29)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -17,43 +17,43 @@
 // Pointers to words created in this file, for usage in defining other words.
 typedef struct kfWordsNative kfWordsNative;
 struct kfWordsNative {
-    kfWord* ext;
-    kfWord* lit;
-    kfWord* sub;
-    kfWord* mul;
-    kfWord* dot;
-    kfWord* att;
-    kfWord* exc;
-    kfWord* cat;
-    kfWord* cex;
-    kfWord* rpu;
-    kfWord* rpo;
-    kfWord* drp;
-    kfWord* dup;
-    kfWord* swp;
-    kfWord* bra;
-    kfWord* zbr;
-    kfWord* emt;
-    kfWord* key;
-    kfWord* acc;
-    kfWord* wrd;
-    kfWord* typ;
-    kfWord* pcr;
-    kfWord* cmp;
-    kfWord* fnd;
-    kfWord* mss;
-    kfWord* dpl;
-    kfWord* equ;
-    kfWord* lss;
-    kfWord* nan;
-    kfWord* psq;
-    kfWord* squ;
-    kfWord* dqu;
-    kfWord* bye;
-    kfWord* dos;
-    kfWord* crs;
-    kfWord* cds;
-    kfWord* dmp;
+    kfWord* ext;  // EXIT
+    kfWord* lit;  // (LITERAL)
+    kfWord* sub;  // -
+    kfWord* mul;  // *
+    kfWord* dot;  // .
+    kfWord* att;  // @
+    kfWord* exc;  // !
+    kfWord* cat;  // C@
+    kfWord* cex;  // C!
+    kfWord* rpu;  // >R
+    kfWord* rpo;  // R>
+    kfWord* drp;  // DROP
+    kfWord* dup;  // DUP
+    kfWord* swp;  // SWAP
+    kfWord* bra;  // BRANCH
+    kfWord* zbr;  // 0BRANCH
+    kfWord* emt;  // EMIT
+    kfWord* key;  // KEY
+    kfWord* acc;  // ACCEPT
+    kfWord* wrd;  // WORD
+    kfWord* typ;  // TYPE
+    kfWord* pcr;  // (CREATE)
+    kfWord* cmp;  // COMPARE
+    kfWord* fnd;  // FIND
+    kfWord* mss;  // M*/
+    kfWord* dpl;  // D+
+    kfWord* equ;  // =
+    kfWord* lss;  // <
+    kfWord* nan;  // NAND
+    kfWord* psq;  // (S")
+    kfWord* squ;  // S"
+    kfWord* dqu;  // ."
+    kfWord* bye;  // BYE
+    kfWord* dos;  // .S
+    kfWord* dmp;  // DUMP
+    kfWord* crs;  // (CLR-RET-STACK)
+    kfWord* cds;  // (CLR-DAT-STACK)
 };
 
 
@@ -287,12 +287,6 @@ kfStatus W_Pcr(kopForth* forth) {  // --
     return KF_STATUS_OK;
 }
 
-kfStatus W_Imm(kopForth* forth) {  // --
-    kfWord* word = (kfWord*) forth->pending;
-    word->flags.bit_flags.is_immediate = true;
-    return KF_STATUS_OK;
-}
-
 kfStatus W_Cmp(kopForth* forth) {  // a1 u1 a2 u2 -- n
     usize u1, u2;
     uint8_t* a1;
@@ -411,19 +405,6 @@ kfStatus W_Nan(kopForth* forth) {  // n1 n2 -- n
     return KF_STATUS_OK;
 }
 
-kfStatus W_Crs(kopForth* forth) {  // --
-    void* a;
-    KF_RETN_POP(a);
-    kfRetnStackInit(&forth->r_stack);
-    KF_RETN_PUSH(a);
-    return KF_STATUS_OK;
-}
-
-kfStatus W_Cds(kopForth* forth) {  // * --
-    kfDataStackInit(&forth->d_stack);
-    return KF_STATUS_OK;
-}
-
 kfStatus W_Psq(kopForth* forth) {  // -- addr u
     uint8_t* a;
     KF_RETN_POP(a);
@@ -483,6 +464,19 @@ kfStatus W_Dmp(kopForth* forth) {  // addr u --
     KF_DATA_POP(b);
     KF_DATA_POP(a);
     kfBiosDumpMem(a, b);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Crs(kopForth* forth) {  // --
+    void* a;
+    KF_RETN_POP(a);
+    kfRetnStackInit(&forth->r_stack);
+    KF_RETN_PUSH(a);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Cds(kopForth* forth) {  // * --
+    kfDataStackInit(&forth->d_stack);
     return KF_STATUS_OK;
 }
 

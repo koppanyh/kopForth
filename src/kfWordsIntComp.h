@@ -2,7 +2,7 @@
 #define KF_WORDS_INT_COMP_H
 
 /*
- * kfWordsIntComp.h (last modified 2025-07-16)
+ * kfWordsIntComp.h (last modified 2025-07-29)
  * This contains the word definitions for the shell interpreter and compiler.
  */
 
@@ -17,31 +17,31 @@
 // Pointers to words created in this file, for usage in defining other words.
 typedef struct kfWordsIntComp kfWordsIntComp;
 struct kfWordsIntComp {
-    kfWord* src;
-    kfWord* rfl;
-    kfWord* exe;
-    kfWord* cpl;
-    kfWord* rev;
-    kfWord* obr;
-    kfWord* cbr;
-    kfWord* abt;
-    kfWord* enf;
-    kfWord* lnk;
-    kfWord* fgs;
-    kfWord* cod;
-    kfWord* bod;
-    kfWord* urv;
-    kfWord* dod;
-    kfWord* pdo;
-    kfWord* doe;
-    kfWord* cre;
-    kfWord* col;
-    kfWord* sem;
-    kfWord* imm;
-    kfWord* inp;
-    kfWord* qut;
-    //kfWord* evl;
-    //kfWord* pst;
+    kfWord* src;  // SOURCE
+    kfWord* rfl;  // REFILL
+    kfWord* exe;  // EXECUTE
+    kfWord* cpl;  // COMPILE,
+    kfWord* rev;  // REVEAL
+    kfWord* obr;  // [
+    kfWord* cbr;  // ]
+    kfWord* abt;  // ABORT
+    kfWord* enf;  // (ERR-NOT-FOUND)
+    kfWord* lnk;  // >LINK
+    kfWord* fgs;  // >FLAGS
+    kfWord* cod;  // >CODE
+    kfWord* bod;  // >BODY
+    kfWord* urv;  // UNREVEAL
+    kfWord* dod;  // DODOES
+    kfWord* pdo;  // (DOES>)
+    kfWord* doe;  // DOES>
+    kfWord* cre;  // CREATE
+    kfWord* col;  // :
+    kfWord* sem;  // ;
+    kfWord* imm;  // IMMEDIATE
+    kfWord* inp;  // INTERPRET
+    kfWord* qut;  // QUIT
+    //kfWord* evl;  // EVALUATE
+    //kfWord* pst;  // POSTPONE
 };
 
 

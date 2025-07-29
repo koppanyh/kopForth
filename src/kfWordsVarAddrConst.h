@@ -2,7 +2,7 @@
 #define KF_WORDS_VAR_ADDR_CONST_H
 
 /*
- * kfWordsVarAddrConst.h (last modified 2025-06-17)
+ * kfWordsVarAddrConst.h (last modified 2025-07-29)
  * This contains the word definitions for variables, addresses, and constants.
  */
 
@@ -14,20 +14,20 @@
 // Pointers to words created in this file, for usage in defining other words.
 typedef struct kfWordsVarAddrConst kfWordsVarAddrConst;
 struct kfWordsVarAddrConst {
-    kfWord* tib;
-    kfWord* htb;
-    kfWord* gin;
-    kfWord* dpt;
-    kfWord* lpt;
-    kfWord* ppt;
-    kfWord* sta;
-    kfWord* dbg;
-    kfWord* her;
-    kfWord* lat;
-    kfWord* pad;
-    kfWord* tru;
-    kfWord* fal;
-    kfWord* ver;
+    kfWord* tib;  // TIB
+    kfWord* htb;  // #TIB
+    kfWord* gin;  // >IN
+    kfWord* dpt;  // DP
+    kfWord* lpt;  // LP
+    kfWord* ppt;  // PP
+    kfWord* sta;  // STATE
+    kfWord* dbg;  // DEBUG
+    kfWord* her;  // HERE
+    kfWord* lat;  // LATEST
+    kfWord* pad;  // PAD
+    kfWord* tru;  // TRUE
+    kfWord* fal;  // FALSE
+    kfWord* ver;  // VERSION
 };
 
 
