@@ -107,10 +107,10 @@ Update the Bios!
    - Add conditional words
    - Add file input support so words can be loaded
    - Add tests
- - v0.3
+ - v0.3 [DEV]
    - Add VERSION, DUMP words
    - Fixed CREATE word to be standard compliant
- - v0.2
+ - v0.2 [MAIN]
    - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix
    - Replace printf with Bios calls
