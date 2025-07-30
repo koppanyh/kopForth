@@ -159,10 +159,12 @@ void kfBiosSetup() {
     // Intro credits.
     kfBiosWriteStr("kopForth " KF_VER_STR ", ");
     kfBiosPrintIsize(sizeof(isize) * 8);
-    kfBiosWriteStr(" Bit, " KF_YEAR_STR);
+    kfBiosWriteStr(" Bit");
     #ifdef KF_IS_WINDOWS
         kfBiosWriteStr(", Windows Edition");
     #endif
+    kfBiosCR();
+    kfBiosWriteStr("Copyright " KF_YEAR_STR ", compiled " __DATE__);
     kfBiosCR();
 }
 
