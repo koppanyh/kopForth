@@ -21,6 +21,7 @@ struct kfWordsVarAddrConst {
     kfWord* lpt;  // LP
     kfWord* ppt;  // PP
     kfWord* sta;  // STATE
+    kfWord* srp;  // SCRPT
     kfWord* dbg;  // DEBUG
     kfWord* her;  // HERE
     kfWord* lat;  // LATEST
@@ -28,6 +29,7 @@ struct kfWordsVarAddrConst {
     kfWord* tru;  // TRUE
     kfWord* fal;  // FALSE
     kfWord* ver;  // VERSION
+    kfWord* sid;  // SOURCE-ID
 };
 
 
@@ -45,6 +47,7 @@ void kfPopulateWordsVarAddrConst(kopForth* forth, kfWordsNative* wn,
     wv->lpt = kopForthAddVariable(forth, "LP",    (isize*) &forth->latest);     // -- a
     wv->ppt = kopForthAddVariable(forth, "PP",    (isize*) &forth->pending);    // -- a
     wv->sta = kopForthAddVariable(forth, "STATE", (isize*) &forth->state);      // -- a
+    wv->srp = kopForthAddVariable(forth, "SRCPT", (isize*) &forth->source_id);  // -- a
     wv->dbg = kopForthAddVariable(forth, "DEBUG", (isize*) &forth->debug);      // -- a
 
     // Addresses
@@ -69,6 +72,11 @@ void kfPopulateWordsVarAddrConst(kopForth* forth, kfWordsNative* wn,
         LIT(KF_VER_MAJOR);
         LIT(KF_VER_MINOR);
         LIT(KF_VER_PATCH);
+        WRD(wn->ext);
+
+    // Values
+    wv->sid = kopForthAddWord(forth, "SOURCE-ID");  // ( -- 0 | -1 | fileid )
+        WRD(wv->srp); WRD(wn->att);                 // SRCPT @
         WRD(wn->ext);
 }
 

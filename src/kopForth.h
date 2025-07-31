@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-07-15)
+ * kopForth.h (last modified 2025-07-29)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -181,6 +181,7 @@ kfStatus kopForthInit(kopForth* forth) {
     forth->latest = NULL;
     forth->pending = NULL;
     forth->state = false;
+    forth->source_id = 0;
     #ifdef KF_DEBUG
         forth->debug = true;
     #else
