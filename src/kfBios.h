@@ -2,7 +2,7 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-07-31)
+ * kfBios.h (last modified 2025-08-07)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
@@ -39,11 +39,27 @@ typedef intptr_t isize;
 
 
 
-// Versioning info.
-#define KF_VER_MAJOR       0
-#define KF_VER_MINOR       2
-#define KF_VER_PATCH       5
-#define KF_YEAR_STR        "2025"
+/////////////////
+// BIOS Params //
+/////////////////
+
+//
+// Versioning params.
+//
+
+#define KF_VER_MAJOR 0
+#define KF_VER_MINOR 2
+#define KF_VER_PATCH 5
+#define KF_YEAR_STR  "2025"
+
+#define KF_TO_STR(X)            #X
+#define KF_VER_TO_STR(X, Y, Z)  "v"KF_TO_STR(X)"."KF_TO_STR(Y)"."KF_TO_STR(Z)
+#define KF_VER_STR              KF_VER_TO_STR(KF_VER_MAJOR, KF_VER_MINOR, KF_VER_PATCH)
+
+//
+// Memory allocation params.
+//
+
 // How many items to allocate for the data stack.
 #define KF_DATA_STACK_SIZE 64
 // How many items to allocate for the return stack.
@@ -54,6 +70,13 @@ typedef intptr_t isize;
 #define KF_MEM_SIZE        4096*sizeof(void*)
 // How many bytes to allocate for the names of words (including \0).
 #define KF_MAX_NAME_SIZE   16
+// How many open files should the file handle pool support.
+#define KF_FILE_POOL_SIZE  16
+
+//
+// Terminal params.
+//
+
 // The character to use for return (keyboard input).
 #ifdef KF_IS_WINDOWS
     // In Windows, the getch() function returns '\r' on keyboard return.
@@ -64,15 +87,11 @@ typedef intptr_t isize;
 // The character to use for newline (terminal output).
 #define KF_NL              '\n'
 
-#define KF_TO_STR(X)            #X
-#define KF_VER_TO_STR(X, Y, Z)  "v"KF_TO_STR(X)"."KF_TO_STR(Y)"."KF_TO_STR(Z)
-#define KF_VER_STR              KF_VER_TO_STR(KF_VER_MAJOR, KF_VER_MINOR, KF_VER_PATCH)
 
 
-
-/////////////
-// BIOS IO //
-/////////////
+//////////////////////
+// BIOS Terminal IO //
+//////////////////////
 
 void kfBiosPrintIsize(isize value) {
     printf("%" PRIdPTR, value);
@@ -144,39 +163,16 @@ void kfBiosDumpMem(uint8_t* value, usize len) {
 
 
 
-/////////////////////////
-// BIOS Setup/Teardown //
-/////////////////////////
-
-void kfBiosSetup() {
-    setbuf(stdout, NULL);
-    #ifndef KF_IS_WINDOWS
-        // No need to disable buffering in Windows since getch() already does.
-        // TODO see if this actually makes a difference on *nix systems.
-        setbuf(stdin, NULL);
-    #endif
-
-    // Intro credits.
-    kfBiosWriteStr("kopForth " KF_VER_STR ", ");
-    kfBiosPrintIsize(sizeof(isize) * 8);
-    kfBiosWriteStr(" Bit");
-    #ifdef KF_IS_WINDOWS
-        kfBiosWriteStr(", Windows Edition");
-    #endif
-    kfBiosCR();
-    kfBiosWriteStr("Copyright " KF_YEAR_STR ", compiled " __DATE__);
-    kfBiosCR();
-}
-
-void kfBiosTeardown() {}
-
-
-
 //////////////////
 // BIOS File IO //
 //////////////////
 
-// The following functions implement standard C file operations.
+// Lets other modules know that the file extension is available.
+#define KF_FILE_EXT
+
+//
+// File access method helpers, should be safe to leave as-is.
+//
 
 #define KF_FAM_WR  0
 #define KF_FAM_R   1
@@ -205,30 +201,90 @@ const char* kfBiosFileGetFam(usize fam) {
     return kfBiosFileAccessMethods[fam];
 }
 
-typedef FILE kfBiosFileHandle;
+//
+// Custom file implementation for the BIOS.
+//
 
-isize kfBiosFileError(kfBiosFileHandle* file) {
+typedef struct kfBiosFile kfBiosFile;
+struct kfBiosFile {
+    FILE* file;
+    usize error;
+    bool open;  // FILE doesn't seem to track this, so we track it ourselves.
+};
+
+kfBiosFile kfBiosFilePool[KF_FILE_POOL_SIZE];
+
+void kfBiosFileResetError(kfBiosFile* file) {
+    file->error = 0;
+}
+
+isize kfBiosFileReset(kfBiosFile* file) {
+    kfBiosFileResetError(file);
+    isize rez = 0;
+    if (file->file)
+        rez = fclose(file->file);
+    file->file = NULL;
+    file->error = 0;
+    file->open = false;
+    return rez;
+}
+
+void kfBiosFileSetupPool() {
+    for (usize i = 0; i < KF_FILE_POOL_SIZE; i++) {
+        kfBiosFilePool[i].file = NULL;
+        kfBiosFileReset(&kfBiosFilePool[i]);
+    }
+}
+
+kfBiosFile* kfBiosFileGetAvailable() {
+    for (usize i = 0; i < KF_FILE_POOL_SIZE; i++) {
+        kfBiosFile* file = &kfBiosFilePool[i];
+        if (file->open)
+            continue;
+        kfBiosFileReset(file);
+        return file;
+    }
+    return NULL;
+}
+
+//
+// The following functions somewhat implement standard C file operations.
+//
+
+isize kfBiosFileError(kfBiosFile* file) {
     // Gets the error associated with the handle.
     // Returns 0 if there are no errors to report.
-    return ferror(file);
+    int err = ferror(file->file);
+    if (err)
+        return err;
+    return file->error;
 }
 
-kfBiosFileHandle* kfBiosFileOpen(const char* file_name, const char* mode) {
+kfBiosFile* kfBiosFileOpen(const char* file_name, const char* mode) {
     // Opens a file and gets the handle.
     // Returns NULL if failure, handle otherwise.
-    return fopen(file_name, mode);
+    kfBiosFile* file = kfBiosFileGetAvailable();
+    if (!file)
+        return NULL;
+    file->file = fopen(file_name, mode);
+    if (!file->file)
+        return NULL;
+    file->open = true;
+    return file;
 }
 
-isize kfBiosFileClose(kfBiosFileHandle* file) {
+isize kfBiosFileClose(kfBiosFile* file) {
     // Closes a file and releases the handle.
     // Returns 0 on success, EOF otherwise.
-    return fclose(file);
+    kfBiosFileResetError(file);
+    return kfBiosFileReset(file);
 }
 
-isize kfBiosFileFlush(kfBiosFileHandle* file) {
+isize kfBiosFileFlush(kfBiosFile* file) {
     // Flushes any buffered writes to the file.
     // Returns 0 on success, EOF otherwise.
-    return fflush(file);
+    kfBiosFileResetError(file);
+    return fflush(file->file);
 }
 
 isize kfBiosFileRename(const char* old_name, const char* new_name) {
@@ -247,59 +303,99 @@ isize kfBiosFileStatus(const char* file_name) {
     // Checks if a file exists (or is accessible) by name.
     // Returns -1 on failure, 0 otherwise.
     // TODO return codes for things like if directory, or exists but no perms.
-    kfBiosFileHandle* file = fopen(file_name, "r");
-    if (file) {
-        fclose(file);
-        return 0;
-    }
+    kfBiosFile* file = kfBiosFileOpen(file_name, kfBiosFileGetFam(KF_FAM_R));
+    if (file)
+        return kfBiosFileClose(file);
     return -1;
 }
 
-isize kfBiosFileSize(kfBiosFileHandle* file) {
+isize kfBiosFileSize(kfBiosFile* file) {
     // Get the file's size.
     // Returns -1 on failure.
-    long orig_pos = ftell(file);
-    if (orig_pos == -1)
+    if (!file->open)
         return -1;
-    if (fseek(file, 0, SEEK_END))
+    long orig_pos = ftell(file->file);
+    if (orig_pos < 0)
         return -1;
-    long end_pos = ftell(file);
-    if (end_pos == -1)
+    if (fseek(file->file, 0, SEEK_END))
         return -1;
-    if (fseek(file, orig_pos, SEEK_SET))
+    long end_pos = ftell(file->file);
+    if (end_pos < 0)
+        return -1;
+    if (fseek(file->file, orig_pos, SEEK_SET))
         return -1;
     return end_pos;
 }
 
-isize kfBiosFilePosition(kfBiosFileHandle* file) {
+isize kfBiosFilePosition(kfBiosFile* file) {
     // Get the file position indicator.
     // Returns -1 on failure.
-    return ftell(file);
+    if (!file->open)
+        return 0;
+    return ftell(file->file);
 }
 
-isize kfBiosFileReposition(kfBiosFileHandle* file, usize pos) {
+isize kfBiosFileReposition(kfBiosFile* file, usize pos) {
     // Set file position indicator to pos.
     // Returns 0 on success, error code otherwise.
-    return fseek(file, pos, SEEK_SET);
+    kfBiosFileResetError(file);
+    if (!file->open)
+        return 0;
+    return fseek(file->file, pos, SEEK_SET);
 }
 
-isize kfBiosFileReadFile(kfBiosFileHandle* file, uint8_t* buf, usize ct) {
+usize kfBiosFileReadFile(kfBiosFile* file, uint8_t* buf, usize ct) {
     // Read up to ct bytes into buf.
     // Returns number of bytes read.
-    return fread(buf, sizeof(uint8_t), ct, file);
+    kfBiosFileResetError(file);
+    if (!file->open) {
+        file->error = -1;
+        return 0;
+    }
+    return fread(buf, sizeof(uint8_t), ct, file->file);
 }
 
-char* kfBiosFileReadLine(kfBiosFileHandle* file, char* buf, usize ct) {
-    // Read up to ct-1 chars into buf and end string with a terminator.
-    // Stop reading when newline is found (includes newline in buf) or EOF.
-    // Returns NULL on failure, buf otherwise.
-    return fgets(buf, ct, file);
-}
-
-isize kfBiosFileWriteFile(kfBiosFileHandle* file, uint8_t* buf, usize ct) {
+usize kfBiosFileWriteFile(kfBiosFile* file, uint8_t* buf, usize ct) {
     // Write ct bytes from buf into the file.
     // Returns number of bytes written.
-    return fwrite(buf, sizeof(uint8_t), ct, file);
+    kfBiosFileResetError(file);
+    if (!file->open) {
+        file->error = -1;
+        return 0;
+    }
+    return fwrite(buf, sizeof(uint8_t), ct, file->file);
+}
+
+
+
+/////////////////////////
+// BIOS Setup/Teardown //
+/////////////////////////
+
+void kfBiosSetup() {
+    setbuf(stdout, NULL);
+    #ifndef KF_IS_WINDOWS
+        // No need to disable buffering in Windows since getch() already does.
+        // TODO see if this actually makes a difference on *nix systems.
+        setbuf(stdin, NULL);
+    #endif
+
+    kfBiosFileSetupPool();
+
+    // Intro credits.
+    kfBiosWriteStr("kopForth " KF_VER_STR ", ");
+    kfBiosPrintIsize(sizeof(isize) * 8);
+    kfBiosWriteStr(" Bit");
+    #ifdef KF_IS_WINDOWS
+        kfBiosWriteStr(", Windows Edition");
+    #endif
+    kfBiosCR();
+    kfBiosWriteStr("Copyright " KF_YEAR_STR ", compiled " __DATE__);
+    kfBiosCR();
+}
+
+void kfBiosTeardown() {
+    // TODO close opened files
 }
 
 #endif // KF_BIOS_H
