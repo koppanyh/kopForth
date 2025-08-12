@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-07-29)
+ * kopForth.h (last modified 2025-08-12)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -10,6 +10,9 @@
 #include "kfBios.h"
 #include "kfStack.h"
 #include "kfType.h"
+#ifdef KF_FILE_EXT
+    #include "kfWordsFile.h"
+#endif
 #include "kfWordsIntComp.h"
 #include "kfWordsNative.h"
 #include "kfWordsStackMem.h"
@@ -43,9 +46,13 @@ kfStatus kfPopulateWords(kopForth* forth) {
     kfWordsString ws;
     kfPopulateWordsString(forth, &wn, &wv, &wm, &ws);
 
+    // File access extension (if available)
+    KF_FILE_EXT_INIT
+
     // Interpreter/Compiler words
     kfWordsIntComp wi;
-    kfPopulateWordsIntComp(forth, &wn, &wv, &wm, &ws, &wi);
+    kfPopulateWordsIntComp(forth, &wn, &wv, &wm, &ws, KF_FILE_EXT_DEP_SHORT
+                           &wi);
     forth->debug_words.abt = wi.abt;
 
     /* Example word definition

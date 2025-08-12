@@ -49,7 +49,7 @@ typedef intptr_t isize;
 
 #define KF_VER_MAJOR 0
 #define KF_VER_MINOR 2
-#define KF_VER_PATCH 5
+#define KF_VER_PATCH 6
 #define KF_YEAR_STR  "2025"
 
 #define KF_TO_STR(X)            #X
@@ -86,6 +86,26 @@ typedef intptr_t isize;
 #endif
 // The character to use for newline (terminal output).
 #define KF_NL              '\n'
+
+
+
+/////////////////////////
+// BIOS Extension Defs //
+/////////////////////////
+
+//
+// File extension.
+//
+
+// Let other modules know that the file extension is available.
+#define KF_FILE_EXT
+
+#ifndef KF_FILE_EXT
+    // The base defines provided by the file extension.
+    #define KF_FILE_EXT_DEP_FULL
+    #define KF_FILE_EXT_DEP_SHORT
+    #define KF_FILE_EXT_INIT
+#endif
 
 
 
@@ -166,9 +186,6 @@ void kfBiosDumpMem(uint8_t* value, usize len) {
 //////////////////
 // BIOS File IO //
 //////////////////
-
-// Lets other modules know that the file extension is available.
-#define KF_FILE_EXT
 
 //
 // File access method helpers, should be safe to leave as-is.

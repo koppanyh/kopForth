@@ -2,11 +2,14 @@
 #define KF_WORDS_INT_COMP_H
 
 /*
- * kfWordsIntComp.h (last modified 2025-07-29)
+ * kfWordsIntComp.h (last modified 2025-08-12)
  * This contains the word definitions for the shell interpreter and compiler.
  */
 
 #include "kfType.h"
+#ifdef KF_FILE_EXT
+    #include "kfWordsFile.h"
+#endif
 #include "kfWordsNative.h"
 #include "kfWordsStackMem.h"
 #include "kfWordsString.h"
@@ -48,8 +51,9 @@ struct kfWordsIntComp {
 
 // Fill interpreter/compiler words into memory.
 void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
-                           kfWordsVarAddrConst* wv, kfWordsStackMem* wm,
-                           kfWordsString* ws, kfWordsIntComp* wi) {
+                            kfWordsVarAddrConst* wv, kfWordsStackMem* wm,
+                            kfWordsString* ws, KF_FILE_EXT_DEP_FULL
+                            kfWordsIntComp* wi) {
     // TODO Null check.
 
     wi->src = kopForthAddWord(forth, "SOURCE");           // ( -- a u )

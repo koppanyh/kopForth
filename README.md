@@ -52,6 +52,10 @@ int main() {
 
 Make new file, add your implementation, profit.
 
+### Adding Extensions
+
+Add defs to BIOS, update dependent files. (See file extension for example)
+
 ## Porting Guide
 
 Update the Bios!
@@ -78,6 +82,8 @@ Update the Bios!
    - This contains the word definitions for stack and address operators
  - kfWordsString.h
    - This contains the word definitions for string/char related stuff
+ - kfWordsFile.h
+   - This contains the word definitions for file access operations
  - kfWordsIntComp.h
    - This contains the word definitions for the shell interpreter and compiler
  - main.c
