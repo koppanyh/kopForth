@@ -2,7 +2,7 @@
 #define KF_TYPE_H
 
 /*
- * kfType.h (last modified 2025-07-29)
+ * kfType.h (last modified 2025-08-27)
  * This contains the main structs and types used by the kopForth system, along
  * with their helper functions.
  */
@@ -25,6 +25,7 @@
 
 // Necessary typedef declarations for types.
 typedef struct kfDebugWords   kfDebugWords;
+typedef struct kfInputSource  kfInputSource;
 typedef struct kopForth       kopForth;
 typedef union  kfWordCode     kfWordCode;
 typedef struct kfWordBitFlags kfWordBitFlags;
@@ -50,30 +51,39 @@ struct kfDebugWords {
     kfWord* zbr;
     kfWord* typ;
     kfWord* psq;
-    kfWord* abt;
+    kfWord* qut;
+};
+
+// The data needed to keep track of what the current input source is.
+#define KF_INPUT_SOURCE_COUNT 4
+struct kfInputSource {
+    isize    source_id;  // The source ID value, 0=user input device, -1=string (via EVALUATE), other=file handle.
+    usize    in_offset;  // The index for the next character to read from the input buffer.
+    usize    in_len;     // The total size of the text in the input buffer.
+    uint8_t* buf;        // The address of the start of the input buffer.
 };
 
 // This is the main struct from which an instance of kopForth is created.
 // Maintain the core/heap/stacks ordering of the fields.
 struct kopForth {
     // Core system fields
-    uint8_t*     here;              // Pointer to the next available `mem` byte.
-    kfWord*      latest;            // Pointer to the latest active word in `mem`. FIND starts searching here.
-    kfWord*      pending;           // Pointer to the most recently defined word, but not necessarily the latest active word.
-    isize        state;             // The compilation state, true=compiling, false=interpret. Uses `isize` so Forth programs can just use `@` and `!`.
-    isize        source_id;         // The source ID value, 0=user input device, -1=string (via EVALUATE), other=file handle.
-    isize        debug;             // The debug state, true=enabled, false=disabled. Uses `isize` so Forth programs can just use `@` and `!`.
-    uint8_t*     pc;                // Program counter for forth inner loop.
-    kfDebugWords debug_words;       // Pointers to words used by the kopForth debugger and compiler.
-    // Heap
-    uint8_t      mem[KF_MEM_SIZE];  // The general memory space where the word dictionary is held.
-    // Stacks + bufs
-    kfDataStack  d_stack;           // The data stack.
-    usize        in_offset;         // The index for the next character to read from the TIB.
-    usize        tib_len;           // The total size of the text in the TIB.
-    uint8_t      tib[KF_TIB_SIZE];  // The terminal input buffer.
-    kfRetnStack  r_stack;           // The return stack.
+    uint8_t*      here;                    // Pointer to the next available `mem` byte.
+    kfWord*       latest;                  // Pointer to the latest active word in `mem`. FIND starts searching here.
+    kfWord*       pending;                 // Pointer to the most recently defined word, but not necessarily the latest active word.
+    isize         state;                   // The compilation state, true=compiling, false=interpret. Uses `isize` so Forth programs can just use `@` and `!`.
+    isize         debug;                   // The debug state, true=enabled, false=disabled. Uses `isize` so Forth programs can just use `@` and `!`.
+    uint8_t*      pc;                      // Program counter for forth inner loop.
+    kfDebugWords  debug_words;             // Pointers to words used by the kopForth debugger and compiler.
+    // Data heap
+    uint8_t       mem[KF_MEM_SIZE];        // The general memory space where the word dictionary is held.
+    // Stacks + input buffer region
+    kfDataStack   d_stack;                 // The data stack.
+    kfRetnStack   r_stack;                 // The return stack.
+    kfInputSource in_src;                  // The current input source definition.
+    uint8_t       in_buf[KF_IN_BUF_SIZE];  // The input buffer, shared between terminal and files.
 };
+
+
 
 // This is the type that actually defines what the word does. It either calls a
 // native function, or it rolls through a list of word addresses and executes

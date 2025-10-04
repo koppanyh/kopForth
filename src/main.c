@@ -1,5 +1,5 @@
 /*
- * main.c (last modified 2025-06-11)
+ * main.c (last modified 2025-08-27)
  * This is just a demo of how kopForth system is included.
  */
 
@@ -38,8 +38,8 @@ int main() {
     // Print debug stuff.
     printf("\nstack: ");
     kfDataStackPrint(&forth.d_stack);
-    printf("\ntib: %s\n", forth.tib);
-    printf("#tib: %d\n", (int) forth.tib_len);
+    printf("\ntib: %s\n", forth.in_buf);
+    printf("#tib: %d\n", (int) forth.in_src.in_len);
 
     // Make sure it exited successfully.
     kfBiosTeardown();

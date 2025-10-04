@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-08-12)
+ * kopForth.h (last modified 2025-09-03)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -46,14 +46,13 @@ kfStatus kfPopulateWords(kopForth* forth) {
     kfWordsString ws;
     kfPopulateWordsString(forth, &wn, &wv, &wm, &ws);
 
-    // File access extension (if available)
-    KF_FILE_EXT_INIT
-
     // Interpreter/Compiler words
     kfWordsIntComp wi;
-    kfPopulateWordsIntComp(forth, &wn, &wv, &wm, &ws, KF_FILE_EXT_DEP_SHORT
-                           &wi);
-    forth->debug_words.abt = wi.abt;
+    kfPopulateWordsIntComp(forth, &wn, &wv, &wm, &ws, &wi);
+    forth->debug_words.qut = wi.qut;
+
+    // File access extension (if available)
+    KF_FILE_EXT_INIT
 
     /* Example word definition
     kfWord* cou_word = kopForthAddWord(forth, "CNT"); {
@@ -85,18 +84,26 @@ void kfDebug(kopForth* forth) {
     }
     kfWord* cur_word = (kfWord*) forth->pc;
     kfBiosWriteStrLen(cur_word->name, cur_word->name_len);
-    kfBiosWriteChar(' ');
-    if (cur_word == forth->debug_words.lit ||
-        cur_word == forth->debug_words.bra ||
-        cur_word == forth->debug_words.zbr) {
+    if (cur_word == forth->debug_words.lit) {
         kfBiosWriteChar('(');
         kfBiosPrintIsize(*(isize*)(*forth->r_stack.ptr));
-        kfBiosWriteStr(") ");
+        kfBiosWriteChar(')');
+    } else if (cur_word == forth->debug_words.bra ||
+               cur_word == forth->debug_words.zbr) {
+        kfBiosWriteChar('(');
+        kfBiosPrintPointer(*(void**)(*forth->r_stack.ptr));
+        kfBiosWriteChar(')');
     }
+    kfBiosWriteChar(' ');
     kfBiosPrintPointer(cur_word);
-    kfBiosWriteStr(" < ");
+    kfBiosWriteStr("    S< ");
     kfDataStackPrint(&forth->d_stack);
-    kfBiosWriteChar('>'); kfBiosCR();
+    kfBiosWriteChar('>');
+    //*
+    kfBiosWriteStr("    R[ ");
+    kfRetnStackPrint(&forth->r_stack);
+    kfBiosWriteChar(']'); // */
+    kfBiosCR();
 }
 
 //////////////////////////////////
@@ -188,7 +195,6 @@ kfStatus kopForthInit(kopForth* forth) {
     forth->latest = NULL;
     forth->pending = NULL;
     forth->state = false;
-    forth->source_id = 0;
     #ifdef KF_DEBUG
         forth->debug = true;
     #else
@@ -199,16 +205,15 @@ kfStatus kopForthInit(kopForth* forth) {
     kfDataStackInit(&forth->d_stack);
     kfRetnStackInit(&forth->r_stack);
 
-    // Setup terminal input buffer.
-    for (usize i = 0; i < KF_TIB_SIZE; i++)
-        forth->tib[i] = 0;
-    forth->tib_len = 0;
-    forth->in_offset = 0;
+    // Setup input buffer.
+    W_Cis(forth);
 
     // Initialize the word dictionary.
     KF_RETURN_IF_ERROR(kfPopulateWords(forth));
     forth->latest = forth->pending;
-    forth->pc = (uint8_t*) forth->debug_words.abt;
+
+    // Set entry point.
+    forth->pc = (uint8_t*) forth->debug_words.qut;
 
     kfBiosPrintIsize(forth->here - forth->mem);
     kfBiosWriteStr(" bytes used of ");

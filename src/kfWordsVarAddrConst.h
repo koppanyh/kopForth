@@ -2,7 +2,7 @@
 #define KF_WORDS_VAR_ADDR_CONST_H
 
 /*
- * kfWordsVarAddrConst.h (last modified 2025-07-29)
+ * kfWordsVarAddrConst.h (last modified 2025-09-02)
  * This contains the word definitions for variables, addresses, and constants.
  */
 
@@ -14,22 +14,25 @@
 // Pointers to words created in this file, for usage in defining other words.
 typedef struct kfWordsVarAddrConst kfWordsVarAddrConst;
 struct kfWordsVarAddrConst {
-    kfWord* tib;  // TIB
-    kfWord* htb;  // #TIB
-    kfWord* gin;  // >IN
     kfWord* dpt;  // DP
     kfWord* lpt;  // LP
     kfWord* ppt;  // PP
     kfWord* sta;  // STATE
     kfWord* srp;  // SCRPT
+    kfWord* gin;  // >IN
+    kfWord* htb;  // #TIB
+    kfWord* tpt;  // TP
     kfWord* dbg;  // DEBUG
     kfWord* her;  // HERE
     kfWord* lat;  // LATEST
     kfWord* pad;  // PAD
+    kfWord* ten;  // TIB-END
     kfWord* tru;  // TRUE
     kfWord* fal;  // FALSE
     kfWord* ver;  // VERSION
     kfWord* sid;  // SOURCE-ID
+    kfWord* tib;  // TIB
+    kfWord* tav;  // TIB-AVAIL
 };
 
 
@@ -40,25 +43,28 @@ void kfPopulateWordsVarAddrConst(kopForth* forth, kfWordsNative* wn,
     // TODO Null check.
 
     // Variables
-    wv->tib = kopForthAddVariable(forth, "TIB",   (isize*)  forth->tib);        // -- a
-    wv->htb = kopForthAddVariable(forth, "#TIB",  (isize*) &forth->tib_len);    // -- a
-    wv->gin = kopForthAddVariable(forth, ">IN",   (isize*) &forth->in_offset);  // -- a
-    wv->dpt = kopForthAddVariable(forth, "DP",    (isize*) &forth->here);       // -- a
-    wv->lpt = kopForthAddVariable(forth, "LP",    (isize*) &forth->latest);     // -- a
-    wv->ppt = kopForthAddVariable(forth, "PP",    (isize*) &forth->pending);    // -- a
-    wv->sta = kopForthAddVariable(forth, "STATE", (isize*) &forth->state);      // -- a
-    wv->srp = kopForthAddVariable(forth, "SRCPT", (isize*) &forth->source_id);  // -- a
-    wv->dbg = kopForthAddVariable(forth, "DEBUG", (isize*) &forth->debug);      // -- a
+    wv->dpt = kopForthAddVariable(forth, "DP",    (isize*) &forth->here);              // -- a
+    wv->lpt = kopForthAddVariable(forth, "LP",    (isize*) &forth->latest);            // -- a
+    wv->ppt = kopForthAddVariable(forth, "PP",    (isize*) &forth->pending);           // -- a
+    wv->sta = kopForthAddVariable(forth, "STATE", (isize*) &forth->state);             // -- a
+    wv->srp = kopForthAddVariable(forth, "SRCPT", (isize*) &forth->in_src.source_id);  // -- a
+    wv->gin = kopForthAddVariable(forth, ">IN",   (isize*) &forth->in_src.in_offset);  // -- a
+    wv->htb = kopForthAddVariable(forth, "#TIB",  (isize*) &forth->in_src.in_len);     // -- a
+    wv->tpt = kopForthAddVariable(forth, "TP",    (isize*) &forth->in_src.buf);        // -- a
+    wv->dbg = kopForthAddVariable(forth, "DEBUG", (isize*) &forth->debug);             // -- a
 
     // Addresses
-    wv->her = kopForthAddWord(forth, "HERE");    // ( -- a )s
-        WRD(wv->dpt); WRD(wn->att);              // DP @
+    wv->her = kopForthAddWord(forth, "HERE");     // ( -- a )
+        WRD(wv->dpt); WRD(wn->att);               // DP @
         WRD(wn->ext);
-    wv->lat = kopForthAddWord(forth, "LATEST");  // ( -- a )
-        WRD(wv->lpt); WRD(wn->att);              // LP @
+    wv->lat = kopForthAddWord(forth, "LATEST");   // ( -- a )
+        WRD(wv->lpt); WRD(wn->att);               // LP @
         WRD(wn->ext);
-    wv->pad = kopForthAddWord(forth, "PAD");     // ( -- a )
-        WRD(wv->her); LIT(-256); WRD(wn->sub);   // HERE 256 +
+    wv->pad = kopForthAddWord(forth, "PAD");      // ( -- a )
+        WRD(wv->her); LIT(-256); WRD(wn->sub);    // HERE 256 +
+        WRD(wn->ext);
+    wv->ten = kopForthAddWord(forth, "TIB-END");  // ( -- a )
+        LIT(&(forth->in_buf[KF_IN_BUF_SIZE]));
         WRD(wn->ext);
 
     // Constants
@@ -77,6 +83,12 @@ void kfPopulateWordsVarAddrConst(kopForth* forth, kfWordsNative* wn,
     // Values
     wv->sid = kopForthAddWord(forth, "SOURCE-ID");  // ( -- 0 | -1 | fileid )
         WRD(wv->srp); WRD(wn->att);                 // SRCPT @
+        WRD(wn->ext);
+    wv->tib = kopForthAddWord(forth, "TIB");        // ( -- a )
+        WRD(wv->tpt); WRD(wn->att);                 // TP @
+        WRD(wn->ext);
+    wv->tav = kopForthAddWord(forth, "TIB-AVAIL");  // ( -- u )
+        WRD(wv->ten); WRD(wv->tib); WRD(wn->sub);   // TIB-END TIB -
         WRD(wn->ext);
 }
 

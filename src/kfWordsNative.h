@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-07-29)
+ * kfWordsNative.h (last modified 2025-09-03)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -51,7 +51,13 @@ struct kfWordsNative {
     kfWord* dqu;  // ."
     kfWord* bye;  // BYE
     kfWord* dos;  // .S
+    kfWord* dor;  // .R
     kfWord* dmp;  // DUMP
+    kfWord* ntr;  // N>R
+    kfWord* nrf;  // NR>
+    kfWord* sip;  // SAVE-INPUT
+    kfWord* rip;  // RESTORE-INPUT
+    kfWord* cis;  // (CLR-IN-SOURCE)
     kfWord* crs;  // (CLR-RET-STACK)
     kfWord* cds;  // (CLR-DAT-STACK)
 };
@@ -245,23 +251,23 @@ kfStatus W_Wrd(kopForth* forth) {  // char -- addr
     *forth->here = 0;
     // put HERE on the stack
     KF_DATA_PUSH(forth->here);
-    if (forth->in_offset >= forth->tib_len)
+    if (forth->in_src.in_offset >= forth->in_src.in_len)
         return KF_STATUS_OK;
     // skip leading `char` in input stream
-    while (forth->tib[forth->in_offset] == c) {
-        forth->in_offset++;
-        if (forth->in_offset >= forth->tib_len)
+    while (forth->in_src.buf[forth->in_src.in_offset] == c) {
+        forth->in_src.in_offset++;
+        if (forth->in_src.in_offset >= forth->in_src.in_len)
             return KF_STATUS_OK;
     }
     // start copying !char characters to HERE+1
     uint8_t* h = forth->here + 1;
     usize ct = 0;
-    while (forth->tib[forth->in_offset] != c) {
-        *h = forth->tib[forth->in_offset];
+    while (forth->in_src.buf[forth->in_src.in_offset] != c) {
+        *h = forth->in_src.buf[forth->in_src.in_offset];
         h++;
         ct++;
-        forth->in_offset++;
-        if (forth->in_offset >= forth->tib_len)
+        forth->in_src.in_offset++;
+        if (forth->in_src.in_offset >= forth->in_src.in_len)
             break;
     }
     // update the value at HERE (1 byte)
@@ -438,9 +444,9 @@ kfStatus W_Dqu(kopForth* forth) {  // --
         kfBiosWriteStr(".\" : not imp");
         return KF_SYSTEM_NOT_IMP;
     } else { // Run time
-        while (forth->in_offset < forth->tib_len) {
-            char c = forth->tib[forth->in_offset];
-            forth->in_offset++;
+        while (forth->in_src.in_offset < forth->in_src.in_len) {
+            char c = forth->in_src.buf[forth->in_src.in_offset];
+            forth->in_src.in_offset++;
             if (c == '"')
                 break;
             kfBiosWriteChar(c);
@@ -458,12 +464,92 @@ kfStatus W_Dos(kopForth* forth) {  // --
     return KF_STATUS_OK;
 }
 
+kfStatus W_Dor(kopForth* forth) {  // --
+    kfRetnStackPrint(&forth->r_stack);
+    return KF_STATUS_OK;
+}
+
 kfStatus W_Dmp(kopForth* forth) {  // addr u --
     uint8_t* a;
     usize b;
     KF_DATA_POP(b);
     KF_DATA_POP(a);
     kfBiosDumpMem(a, b);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Ntr(kopForth* forth) {  // i * n +n --
+    usize n;
+    uint8_t* r;
+    KF_RETN_POP(r);
+    KF_DATA_POP(n);
+    for (usize i = 0; i < n; i++) {
+        isize a;
+        KF_DATA_POP(a);
+        KF_RETN_PUSH(a);
+    }
+    KF_RETN_PUSH(n);
+    KF_RETN_PUSH(r);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Nrf(kopForth* forth) {  // -- i * n +n
+    usize n;
+    uint8_t* r;
+    KF_RETN_POP(r);
+    KF_RETN_POP(n);
+    for (usize i = 0; i < n; i++) {
+        isize a;
+        KF_RETN_POP(a);
+        KF_DATA_PUSH(a);
+    }
+    KF_DATA_PUSH(n);
+    KF_RETN_PUSH(r);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Sip(kopForth* forth) {  // -- xn ... x1 n
+    KF_DATA_PUSH(forth->in_src.source_id);
+    KF_DATA_PUSH(forth->in_src.in_offset);
+    KF_DATA_PUSH(forth->in_src.in_len);
+    KF_DATA_PUSH(forth->in_src.buf);
+    KF_DATA_PUSH(KF_INPUT_SOURCE_COUNT);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Rip(kopForth* forth) {  // xn ... x1 n -- flag
+    usize n;
+    KF_DATA_POP(n);
+    usize t;
+    if (n > KF_INPUT_SOURCE_COUNT) {
+        for (usize i = 0; i < n - KF_INPUT_SOURCE_COUNT; i++) {
+            KF_DATA_POP(t);
+        }
+        n = KF_INPUT_SOURCE_COUNT;
+    }
+    isize m[KF_INPUT_SOURCE_COUNT];
+    for (usize i = 0; i < n; i++) {
+        KF_DATA_POP(m[i]);
+    }
+    if (n != KF_INPUT_SOURCE_COUNT) {
+        KF_DATA_PUSH(-1);
+        return KF_STATUS_OK;
+    }
+    forth->in_src.buf       = (uint8_t*) m[0];
+    forth->in_src.in_len    =            m[1];
+    forth->in_src.in_offset =            m[2];
+    forth->in_src.source_id = (isize)    m[3];
+    KF_DATA_PUSH(0);
+    return KF_STATUS_OK;
+}
+
+kfStatus W_Cis(kopForth* forth) {  // --
+    forth->in_src.source_id = 0;
+    forth->in_src.in_offset = 0;
+    forth->in_src.in_len = 0;
+    forth->in_src.buf = forth->in_buf;
+    for (usize i = 0; i < KF_IN_BUF_SIZE; i++)
+        forth->in_buf[i] = 0;
     return KF_STATUS_OK;
 }
 
@@ -521,8 +607,14 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     wn->dqu = kopForthAddNativeWord(forth, ".\"",       W_Dqu, true );
     wn->bye = kopForthAddNativeWord(forth, "BYE",       W_Bye, false);
     wn->dos = kopForthAddNativeWord(forth, ".S",        W_Dos, false);
+    wn->dor = kopForthAddNativeWord(forth, ".R",        W_Dor, false);
     wn->dmp = kopForthAddNativeWord(forth, "DUMP",      W_Dmp, false);
+    wn->ntr = kopForthAddNativeWord(forth, "N>R",       W_Ntr, false);
+    wn->nrf = kopForthAddNativeWord(forth, "NR>",       W_Nrf, false);
 
+    wn->sip = kopForthAddNativeWord(forth, "SAVE-INPUT",      W_Sip, false);
+    wn->rip = kopForthAddNativeWord(forth, "RESTORE-INPUT",   W_Rip, false);
+    wn->cis = kopForthAddNativeWord(forth, "(CLR-IN-SOURCE)", W_Cis, false);
     wn->crs = kopForthAddNativeWord(forth, "(CLR-RET-STACK)", W_Crs, false);
     wn->cds = kopForthAddNativeWord(forth, "(CLR-DAT-STACK)", W_Cds, false);
 }
