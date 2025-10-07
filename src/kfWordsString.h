@@ -2,7 +2,7 @@
 #define KF_WORDS_STRING_H
 
 /*
- * kfWordsString.h (last modified 2025-07-29)
+ * kfWordsString.h (last modified 2025-10-07)
  * This contains the word definitions for string/char related stuff.
  */
 
@@ -34,19 +34,23 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
                            kfWordsString* ws) {
     // TODO Null check.
 
-    ws->crr = kopForthAddWord(forth, "CR");        // ( -- )
-        LIT(KF_NL); WRD(wn->emt);                  // 10 EMIT
+    ws->crr = kopForthAddWord(forth, "CR");  // ( -- )
+        LIT(KF_NL); WRD(wn->emt);            // 10 EMIT
         WRD(wn->ext);
-    ws->bla = kopForthAddWord(forth, "BL");        // ( -- 32 )
-        LIT(' ');                                  // 32
+
+    ws->bla = kopForthAddWord(forth, "BL");  // ( -- 32 )
+        LIT(' ');                            // 32
         WRD(wn->ext);
-    ws->spa = kopForthAddWord(forth, "SPACE");     // ( -- )
-        WRD(ws->bla); WRD(wn->emt);                // BL EMIT
+
+    ws->spa = kopForthAddWord(forth, "SPACE");  // ( -- )
+        WRD(ws->bla); WRD(wn->emt);             // BL EMIT
         WRD(wn->ext);
-    ws->cnt = kopForthAddWord(forth, "COUNT");     // ( a1 -- a2 u )
-        WRD(wn->dup); LIT(1); WRD(wm->add);        // DUP 1 +  ( a1 a2 )
-        WRD(wn->swp); WRD(wn->cat);                // SWAP C@  ( a2 u )
+
+    ws->cnt = kopForthAddWord(forth, "COUNT");  // ( a1 -- a2 u )
+        WRD(wn->dup); LIT(1); WRD(wm->add);     // DUP 1 +  ( a1 a2 )
+        WRD(wn->swp); WRD(wn->cat);             // SWAP C@  ( a2 u )
         WRD(wn->ext);
+
     ws->sst = kopForthAddWord(forth, "/STRING");   // ( a1 u1 n -- a2 u2 )
         WRD(wn->dup); WRD(wn->rpu); WRD(wn->rpu);  // DUP >R >R  ( a1 u1 )
         WRD(wn->swp); WRD(wn->rpo); WRD(wm->add);  // SWAP R> +  ( u1 a2 )
@@ -64,6 +68,7 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
         WRDADDR(b03, wn->ext);                              // THEN
         *b00 = (isize) b02;
         *b01 = (isize) b03; }
+
     ws->num = kopForthAddWord(forth, ">NUMBER"); {          // ( ud1 a1 u1 -- ud2 a2 u2 )
         kfWord** b00 =                                      // BEGIN
         WRD(wn->dup); WRD(wm->zeq);                         //     DUP 0=           ( ud a u f )
@@ -85,41 +90,42 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
         *b03 = (isize) b05;
         *b04 = (isize) b06;
         *b07 = (isize) b00; }
-    ws->snu = kopForthAddWord(forth, "S>NUMBER?"); {        // ( a1 u1 -- n 0 0 | d -1 0 | a2 u2 )
+
+    ws->snu = kopForthAddWord(forth, "S>NUMBER?"); {       // ( a1 u1 -- n 0 0 | d -1 0 | a2 u2 )
         // \ Save double status (true if need to drop high word)
-        WRD(wm->tdu); WRD(wm->add); LIT(1); WRD(wn->sub);   // 2DUP + 1 -
-        WRD(wn->cat); LIT('.'); WRD(wn->equ);               // C@ [CHAR] . =
-        LITADDR(b00, wn->zbr, 0);                           // IF
-        WRD(wv->fal); WRD(wn->rpu);                         //     FALSE >R
-        LIT(1); WRD(wn->sub);                               //     1 -
-        LITADDR(b01, wn->bra, 0);                           // ELSE
-        WRDADDR(b02, wv->tru); WRD(wn->rpu);                //     TRUE >R THEN
+        WRD(wm->tdu); WRD(wm->add); LIT(1); WRD(wn->sub);  // 2DUP + 1 -
+        WRD(wn->cat); LIT('.'); WRD(wn->equ);              // C@ [CHAR] . =
+        LITADDR(b00, wn->zbr, 0);                          // IF
+        WRD(wv->fal); WRD(wn->rpu);                        //     FALSE >R
+        LIT(1); WRD(wn->sub);                              //     1 -
+        LITADDR(b01, wn->bra, 0);                          // ELSE
+        WRDADDR(b02, wv->tru); WRD(wn->rpu);               //     TRUE >R THEN
         // \ Save sign multiplier
-        WRDADDR(b03, wm->ovr); WRD(wn->cat);                // OVER C@
-        LIT('-'); WRD(wn->equ);                             // [CHAR] - =
-        LITADDR(b04, wn->zbr, 0);                           // IF
-        LIT(-1); WRD(wn->rpu);                              //     -1 >R
-        LIT(1); WRD(ws->sst);                               //     1 /STRING
-        LITADDR(b05, wn->bra, 0);                           // ELSE
-        WRDADDR(b06, wn->lit); RAW(1); WRD(wn->rpu);        //     1 >R THEN
+        WRDADDR(b03, wm->ovr); WRD(wn->cat);               // OVER C@
+        LIT('-'); WRD(wn->equ);                            // [CHAR] - =
+        LITADDR(b04, wn->zbr, 0);                          // IF
+        LIT(-1); WRD(wn->rpu);                             //     -1 >R
+        LIT(1); WRD(ws->sst);                              //     1 /STRING
+        LITADDR(b05, wn->bra, 0);                          // ELSE
+        WRDADDR(b06, wn->lit); RAW(1); WRD(wn->rpu);       //     1 >R THEN
         // \ Add 0. to beginning of stack and parse number
-        WRDADDR(b07, wn->rpu); WRD(wn->rpu);                // >R >R
-        LIT(0); LIT(0); WRD(wn->rpo); WRD(wn->rpo);         // 0. R> R>           ( 0. a u )
-        WRD(ws->num);                                       // >NUMBER            ( ud a u )
+        WRDADDR(b07, wn->rpu); WRD(wn->rpu);               // >R >R
+        LIT(0); LIT(0); WRD(wn->rpo); WRD(wn->rpo);        // 0. R> R>           ( 0. a u )
+        WRD(ws->num);                                      // >NUMBER            ( ud a u )
         // \ Check that the parsing was good
-        WRD(wn->dup); WRD(wm->zeq);                         // DUP 0=
-        LITADDR(b08, wn->zbr, 0);                           // IF  \ Success
-        WRD(wm->tdr);                                       //     2DROP          ( ud )
-        WRD(wn->rpo); LIT(1); WRD(wn->mss);                 //     R> 1 M*/       ( d )
-        WRD(wn->rpo); LITADDR(b09, wn->zbr, 0);             //     R> IF
-        WRD(wn->drp); LIT(0); LIT(0);                       //         DROP 0 0   ( n 0 0 )
-        LITADDR(b10, wn->bra, 0);                           //     ELSE
-        WRDADDR(b11, wn->lit); RAW(-1); LIT(0);             //         -1 0 THEN  ( d -1 0 )
-        WRDADDR(b12, wn->bra); RAWADDR(b13, 0);             // ELSE  \ Failure
-        WRDADDR(b14, wn->rpu); WRD(wn->rpu);                //     >R >R
-        WRD(wm->tdr); WRD(wn->rpo); WRD(wn->rpo);           //     2DROP R> R>    ( addr u )
-        WRD(wn->rpo); WRD(wn->rpo); WRD(wm->tdr);           //     R> R> 2DROP
-        WRDADDR(b15, wn->ext);                              // THEN EXIT
+        WRD(wn->dup); WRD(wm->zeq);                        // DUP 0=
+        LITADDR(b08, wn->zbr, 0);                          // IF  \ Success
+        WRD(wm->tdr);                                      //     2DROP          ( ud )
+        WRD(wn->rpo); LIT(1); WRD(wn->mss);                //     R> 1 M*/       ( d )
+        WRD(wn->rpo); LITADDR(b09, wn->zbr, 0);            //     R> IF
+        WRD(wn->drp); LIT(0); LIT(0);                      //         DROP 0 0   ( n 0 0 )
+        LITADDR(b10, wn->bra, 0);                          //     ELSE
+        WRDADDR(b11, wn->lit); RAW(-1); LIT(0);            //         -1 0 THEN  ( d -1 0 )
+        WRDADDR(b12, wn->bra); RAWADDR(b13, 0);            // ELSE  \ Failure
+        WRDADDR(b14, wn->rpu); WRD(wn->rpu);               //     >R >R
+        WRD(wm->tdr); WRD(wn->rpo); WRD(wn->rpo);          //     2DROP R> R>    ( addr u )
+        WRD(wn->rpo); WRD(wn->rpo); WRD(wm->tdr);          //     R> R> 2DROP
+        WRDADDR(b15, wn->ext);                             // THEN EXIT
         *b00 = (isize) b02;
         *b01 = (isize) b03;
         *b04 = (isize) b06;

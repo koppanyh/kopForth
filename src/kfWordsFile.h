@@ -2,7 +2,7 @@
 #define KF_WORDS_FILE_H
 
 /*
- * kfWordsFile.h (last modified 2025-10-03)
+ * kfWordsFile.h (last modified 2025-10-07)
  * This contains the word definitions for the file access words.
  * This file has both Forth and Native words since file access is an extension.
  */
@@ -306,6 +306,7 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
     wf->wrl = kopForthAddNativeWord(forth, "WRITE-LINE",      W_Wrl, false);
 
     // Constant words
+
     wf->bin = kopForthAddWord(forth, "BIN");  // ( fam1 -- fam2 )
         LIT(KF_FAM_BIN); WRD(wm->orr);        // 4 OR
         WRD(wn->ext);
@@ -323,6 +324,7 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
         WRD(wn->ext);
 
     // Interpreter extension words
+
     wf->rfl = kopForthAddWord(forth, "REFILL"); {
         // TODO fix handling \r\n line endings
         WRD(wv->sid); LIT(0); WRD(wm->leq);                 // SOURCE-ID 0 <=           ( f )                \ Not from file
@@ -347,27 +349,30 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
         *b04 = (isize) b05; }
 
     kopForthAddWord(forth, "TEST"); {
-        WRD(wv->pad); LIT(80); WRD(wn->acc); WRD(ws->crr);     // PAD 80 ACCEPT CR  ( u )
-        WRD(wv->pad); WRD(wn->swp); WRD(wf->reo);              // PAD SWAP R/O   ( a u fam )
-        WRD(wf->opf);                                          // OPEN-FILE      ( fileid ior )
-        LITADDR(b00, wn->zbr, 0);                              // IF             ( fileid )
-        WRD(wi->abt);                                          //     ABORT
-                                                               // THEN
-        WRDADDR(b01, wv->tib); WRD(wv->htb); WRD(wn->att);     // TIB #TIB @     ( fileid a u )
-        WRD(wm->add); WRD(wv->tpt); WRD(wn->exc);              // + TP !         ( fileid )
-        WRD(wv->srp); WRD(wn->exc);                            // SRCPT !        (  )
+        WRD(wv->pad); LIT(80); WRD(wn->acc); WRD(ws->crr);       // PAD 80 ACCEPT CR  ( u )
+        WRD(wv->pad); WRD(wn->swp); WRD(wf->reo);                // PAD SWAP R/O   ( a u fam )
+        WRD(wf->opf);                                            // OPEN-FILE      ( fileid ior )
+        LITADDR(b00, wn->zbr, 0);                                // IF             ( fileid )
+        WRD(wi->abt);                                            //     ABORT
+                                                                 // THEN
+        WRDADDR(b01, wn->sip); WRD(wn->ntr);                     // SAVE-INPUT N>R ( fileid )
+        WRD(wi->src); WRD(wm->add); WRD(wv->tpt); WRD(wn->exc);  // SOURCE + TP !         ( fileid )
+        WRD(wv->srp); WRD(wn->exc);                              // SRCPT !        (  )
         //WRD(wv->tru); WRD(wv->dbg); WRD(wn->exc);
-                                                               // BEGIN
-        WRDADDR(b02, wf->rfl);                                 //     REFILL
-        LITADDR(b03, wn->zbr, 0);                              // WHILE
-        //WRD(wi->src); WRD(wn->typ); WRD(ws->spa);              //     SOURCE TYPE SPACE
-        WRD(wi->src); WRD(wi->evl); /*WRD(ws->crr);*/              //     SOURCE EVALUATE CR
-        LITADDR(b04, wn->bra, 0);                              // REPEAT
-        WRDADDR(b05, wi->qut);                                 // QUIT
-        WRD(wn->ext);
+                                                                 // BEGIN
+        WRDADDR(b02, wf->rfl);                                   //     REFILL
+        LITADDR(b03, wn->zbr, 0);                                // WHILE
+        WRD(wi->src); WRD(wi->evl);                              //     SOURCE EVALUATE
+        LITADDR(b04, wn->bra, 0);                                // REPEAT
+        WRDADDR(b05, wn->nrf); WRD(wn->rip);                     // NR> RESTORE-INPUT  ( flag )
+        LITADDR(b06, wn->zbr, 0);                                // IF
+        WRD(wi->abt);                                            //     ABORT
+                                                                 // THEN
+        WRDADDR(b07, wn->ext);
         *b00 = (isize) b01;
         *b03 = (isize) b05;
-        *b04 = (isize) b02; }
+        *b04 = (isize) b02;
+        *b06 = (isize) b07; }
 
 /* File dev test words
     kfWord* dcr = kopForthAddWord(forth, ".CR"); {  // ( n -- )

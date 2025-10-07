@@ -104,6 +104,8 @@ Update the Bios!
  - Memory alignment
    - Because certain forth words have the need to look up fields in the word struct using pointer arithmetic, the kfWord struct has been packed to make it easy to intuit the position of the field
    - This only causes problems on systems that do not allow unaligned memory access
+ - Line endings
+   - At the moment the file extension words can't handle the carriage return character (`\r`) and can only handle lines that end with the newline character (`\n`)
 
 ## Changelog
 
@@ -111,11 +113,13 @@ Update the Bios!
    - Rewrite some native words to be forth words
    - Remove unnecessary words
    - Add conditional words
-   - Add file input support so words can be loaded
    - Add tests
  - v0.3 [DEV]
    - Add VERSION, DUMP words
    - Fixed CREATE word to be standard compliant
+   - Change how TIB works to accomodate different inputs
+   - Add file input support so programs can be loaded
+   - Changed spacing formatting in word definition files
  - v0.2 [MAIN]
    - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix
