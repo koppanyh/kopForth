@@ -2,7 +2,7 @@
 #define KOP_FORTH_H
 
 /*
- * kopForth.h (last modified 2025-09-03)
+ * kopForth.h (last modified 2025-10-10)
  * This is the main kopForth file that gets included and pulls in all the
  * dependencies. It also includes the initialization and run routines.
  */
@@ -55,6 +55,19 @@ kfStatus kfPopulateWords(kopForth* forth) {
     KF_FILE_EXT_INIT
 
     /* Example word definition
+
+    kfWord* cou_word = kopForthAddWord(forth, "CNT"); {  // ( -- )
+        LIT(10);                                         // 10 BEGIN   ( n )
+        WRDADDR(b00, wn.dup);                            //     DUP    ( n n )
+        LITADDR(b01, wn.zbr, 0);                         // WHILE      ( n )
+        LIT(1); WRD(wn.sub);                             //     1 -    ( n )
+        WRD(wn.dup); WRD(wn.dot);                        //     DUP .  ( n )
+        LITADDR(b02, wn.bra, 0);                         // REPEAT
+        WRDADDR(b03, wn.drp);                            // DROP       (  )
+        WRD(wn.ext);
+        LINK(b01, b03); LINK(b02, b00); }
+
+    // Legacy:
     kfWord* cou_word = kopForthAddWord(forth, "CNT"); {
                        kopForthAddWordP(forth, wn.lit);  // 10
                        kopForthAddIsize(forth, 10);//00000000);

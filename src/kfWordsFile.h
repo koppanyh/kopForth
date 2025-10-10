@@ -2,7 +2,7 @@
 #define KF_WORDS_FILE_H
 
 /*
- * kfWordsFile.h (last modified 2025-10-07)
+ * kfWordsFile.h (last modified 2025-10-10)
  * This contains the word definitions for the file access words.
  * This file has both Forth and Native words since file access is an extension.
  */
@@ -50,12 +50,12 @@ struct kfWordsFile {
     kfWord* wro;  // W/O
     kfWord* rew;  // R/W
     kfWord* rfl;  // REFILL
+    kfWord* inf;  // INCLUDE-FILE
+    kfWord* ind;  // INCLUDED
+    kfWord* inc;  // INCLUDE
 };
 /*
 // RESIZE-FILE
-// INCLUDE-FILE
-// INCLUDE
-// INCLUDED
 // REQUIRE
 // REQUIRED
 S\"
@@ -290,6 +290,7 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
     // TODO Null check.
 
     // Native words
+
     wf->opf = kopForthAddNativeWord(forth, "OPEN-FILE",       W_Opf, false);
     wf->clf = kopForthAddNativeWord(forth, "CLOSE-FILE",      W_Clf, false);
     wf->crf = kopForthAddNativeWord(forth, "CREATE-FILE",     W_Crf, false);
@@ -305,7 +306,9 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
     wf->rdl = kopForthAddNativeWord(forth, "READ-LINE",       W_Rdl, false);
     wf->wrl = kopForthAddNativeWord(forth, "WRITE-LINE",      W_Wrl, false);
 
-    // Constant words
+    ////////////////////
+    // Constant words //
+    ////////////////////
 
     wf->bin = kopForthAddWord(forth, "BIN");  // ( fam1 -- fam2 )
         LIT(KF_FAM_BIN); WRD(wm->orr);        // 4 OR
@@ -323,10 +326,11 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
         LIT(KF_FAM_RW); WRD(wf->bin);         // 7
         WRD(wn->ext);
 
-    // Interpreter extension words
+    /////////////////////////////////
+    // Interpreter extension words //
+    /////////////////////////////////
 
     wf->rfl = kopForthAddWord(forth, "REFILL"); {
-        // TODO fix handling \r\n line endings
         WRD(wv->sid); LIT(0); WRD(wm->leq);                 // SOURCE-ID 0 <=           ( f )                \ Not from file
         LITADDR(b00, wn->zbr, 0);                           // IF                       (  )
         WRD(wi->rfl); WRD(wn->ext);                         //     REFILL EXIT          ( f )
@@ -344,35 +348,44 @@ void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
                                                             // THEN
         WRDADDR(b05, wn->drp); WRD(wv->fal);                // DROP FALSE               ( 0 )                \ Otherwise return false.
         WRD(wn->ext);
-        *b00 = (isize) b01;
-        *b02 = (isize) b03;
-        *b04 = (isize) b05; }
+        LINK(b00, b01); LINK(b02, b03); LINK(b04, b05); }
 
-    kopForthAddWord(forth, "TEST"); {
-        WRD(wv->pad); LIT(80); WRD(wn->acc); WRD(ws->crr);       // PAD 80 ACCEPT CR  ( u )
-        WRD(wv->pad); WRD(wn->swp); WRD(wf->reo);                // PAD SWAP R/O   ( a u fam )
-        WRD(wf->opf);                                            // OPEN-FILE      ( fileid ior )
-        LITADDR(b00, wn->zbr, 0);                                // IF             ( fileid )
-        WRD(wi->abt);                                            //     ABORT
-                                                                 // THEN
-        WRDADDR(b01, wn->sip); WRD(wn->ntr);                     // SAVE-INPUT N>R ( fileid )
-        WRD(wi->src); WRD(wm->add); WRD(wv->tpt); WRD(wn->exc);  // SOURCE + TP !         ( fileid )
-        WRD(wv->srp); WRD(wn->exc);                              // SRCPT !        (  )
-        //WRD(wv->tru); WRD(wv->dbg); WRD(wn->exc);
-                                                                 // BEGIN
-        WRDADDR(b02, wf->rfl);                                   //     REFILL
-        LITADDR(b03, wn->zbr, 0);                                // WHILE
-        WRD(wi->src); WRD(wi->evl);                              //     SOURCE EVALUATE
-        LITADDR(b04, wn->bra, 0);                                // REPEAT
-        WRDADDR(b05, wn->nrf); WRD(wn->rip);                     // NR> RESTORE-INPUT  ( flag )
-        LITADDR(b06, wn->zbr, 0);                                // IF
-        WRD(wi->abt);                                            //     ABORT
-                                                                 // THEN
+    wf->inf = kopForthAddWord(forth, "INCLUDE-FILE"); {              // ( fileid -- )
+        WRD(wn->sip); WRD(wn->ntr);                                  // SAVE-INPUT N>R          ( fileid )[ source... ]  \ Save the current input source specification
+        WRD(wv->srp); WRD(wn->exc);                                  // SRCPT !                 (  )                     \ Remove fileid from the stack and store in SOURCE-ID
+        WRD(wi->src); WRD(wm->add); WRD(wv->tpt); WRD(wn->exc);      // SOURCE + TP !           (  )                     \ Make the file specified by fileid the input source
+                                                                     // BEGIN                                            \ Repeat until end of file:
+        WRDADDR(b00, wf->rfl);                                       //     REFILL              ( f )                    \ Read a line from the file, fill the input buffer from the contents of that line, set >IN to zero,
+        LITADDR(b01, wn->zbr, 0);                                    // WHILE                   (  )
+        WRD(wi->inp);                                                //     INTERPRET           (  )                     \ And interpret
+        LITADDR(b02, wn->bra, 0);                                    // REPEAT
+        WRDADDR(b03, wv->sid);                                       // SOURCE-ID               ( fileid )               \ Close the file
+        WRD(wf->clf); WRD(wn->dup); LITADDR(b04, wn->zbr, 0);        // CLOSE-FILE DUP IF       ( ior )
+        PRSTR("ERROR: INCLUDE-FILE CLOSE-FILE IOR "); WRD(wn->dot);  //     ." ERROR: INCLUDE-FILE CLOSE-FILE IOR " .
+        WRD(wi->abt);                                                //     ABORT
+                                                                     // THEN
+        WRDADDR(b05, wn->drp); WRD(wn->nrf); WRD(wn->rip);           // DROP NR> RESTORE-INPUT  ( flag )[  ]             \ Restore the input source specification to its saved value
+        LITADDR(b06, wn->zbr, 0);                                    // IF                      (  )
+        PRSTR("ERROR: INCLUDE-FILE RESTORE-INPUT Failed.");          //     ." ERROR: INCLUDE-FILE RESTORE-INPUT Failed."
+        WRD(wi->abt);                                                //     ABORT
+                                                                     // THEN
         WRDADDR(b07, wn->ext);
-        *b00 = (isize) b01;
-        *b03 = (isize) b05;
-        *b04 = (isize) b02;
-        *b06 = (isize) b07; }
+        LINK(b01, b03); LINK(b02, b00);
+        LINK(b04, b05); LINK(b06, b07); }
+
+    wf->ind = kopForthAddWord(forth, "INCLUDED"); {             // ( c-addr u -- )
+        WRD(wf->reo); WRD(wf->opf);                             // R/O OPEN-FILE      ( fileid ior )
+        WRD(wn->dup); LITADDR(b00, wn->zbr, 0);                 // DUP IF             ( fileid ior )
+        PRSTR("ERROR: INCLUDED OPEN-FILE IOR "); WRD(wn->dot);  //     ." ERROR: INCLUDED OPEN-FILE IOR " .
+        WRD(wi->abt);                                           //     ABORT
+                                                                // THEN
+        WRDADDR(b01, wn->drp); WRD(wf->inf);                    // DROP INCLUDE-FILE  (  )
+        WRD(wn->ext);
+        LINK(b00, b01); }
+
+    wf->inc = kopForthAddWord(forth, "INCLUDE");  // ( "name" -- )
+        WRD(wi->prn); WRD(wf->ind);               // PARSE-NAME INCLUDED  ( addr u )
+        WRD(wn->ext);
 
 /* File dev test words
     kfWord* dcr = kopForthAddWord(forth, ".CR"); {  // ( n -- )

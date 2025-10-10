@@ -2,7 +2,7 @@
 #define KF_WORDS_STRING_H
 
 /*
- * kfWordsString.h (last modified 2025-10-07)
+ * kfWordsString.h (last modified 2025-10-10)
  * This contains the word definitions for string/char related stuff.
  */
 
@@ -21,6 +21,7 @@ struct kfWordsString {
     kfWord* spa;  // SPACE
     kfWord* cnt;  // COUNT
     kfWord* sst;  // /STRING
+    kfWord* xsk;  // XT-SKIP
     kfWord* dig;  // DIGIT?
     kfWord* num;  // >NUMBER
     kfWord* snu;  // S>NUMBER?
@@ -51,11 +52,34 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
         WRD(wn->swp); WRD(wn->cat);             // SWAP C@  ( a2 u )
         WRD(wn->ext);
 
-    ws->sst = kopForthAddWord(forth, "/STRING");   // ( a1 u1 n -- a2 u2 )
-        WRD(wn->dup); WRD(wn->rpu); WRD(wn->rpu);  // DUP >R >R  ( a1 u1 )
-        WRD(wn->swp); WRD(wn->rpo); WRD(wm->add);  // SWAP R> +  ( u1 a2 )
-        WRD(wn->swp); WRD(wn->rpo); WRD(wn->sub);  // SWAP R> -  ( a2 u2 )
+    ws->sst = kopForthAddWord(forth, "/STRING"); {  // ( a1 u1 n -- a2 u2 )
+        WRD(wn->dup); WRD(wn->rpu); WRD(wn->rpu);   // DUP >R >R  ( a1 u1 )[ n n ]
+        WRD(wn->swp); WRD(wn->rpo); WRD(wm->add);   // SWAP R> +  ( u1 a2 )[ n ]
+        WRD(wn->swp); WRD(wn->rpo); WRD(wn->sub);   // SWAP R> -  ( a2 u2 )
+        WRD(wn->dup); LIT(0); WRD(wn->lss);         // DUP 0 <    ( a2 u2 f )
+        LITADDR(b00, wn->zbr, 0);                   // IF         ( a2 u2 )
+        WRD(wm->add); LIT(0);                       //     + 0    ( a3 0 )
+                                                    // THEN
+        WRDADDR(b01, wn->ext);
+        LINK(b00, b01); }
+
+    ws->xsk = kopForthAddWord(forth, "XT-SKIP"); {  // ( a1 u1 xt -- a2 u2 )  \ skip all characters satisfying xt ( c -- f )
+        WRD(wn->rpu);                               // >R                  ( a1 u1 )[ xt ]
+                                                    // BEGIN
+        WRDADDR(b00, wn->dup);                      //     DUP             ( a1 u1 u1 )[ xt ]
+        LITADDR(b01, wn->zbr, 0);                   //     IF              ( a1 u1 )[ xt ]
+        WRD(wm->ovr); WRD(wn->cat);                 //         OVER C@     ( a1 u1 c )[ xt ]
+        WRD(wm->rat); WRD(wm->exe);                 //         R@ EXECUTE  ( a1 u1 f )[ xt ]
+        LITADDR(b02, wn->bra, 0);                   //     ELSE
+        WRDADDR(b03, wv->fal);                      //         FALSE       ( a1 u1 0 )[ xt ]
+                                                    //     THEN
+        WRDADDR(b04, wn->zbr); RAWADDR(b05, 0);     // WHILE               ( a1 u1 )[ xt ]
+        LIT(1); WRD(ws->sst);                       //     1 /STRING       ( a2 u2 )[ xt ]
+        LITADDR(b06, wn->bra, 0);                   // REPEAT
+        WRDADDR(b07, wn->rpo); WRD(wn->drp);        // R> DROP             ( a2 u2 )
         WRD(wn->ext);
+        LINK(b01, b03); LINK(b02, b04);
+        LINK(b05, b07); LINK(b06, b00); }
 
     ws->dig = kopForthAddWord(forth, "DIGIT?"); {           // ( n1 -- n2 -1 | 0 )
         LIT(48); WRD(wn->sub);                              // 48 -            ( n2 )
@@ -66,8 +90,7 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
         LITADDR(b01, wn->bra, 0);                           // ELSE
         WRDADDR(b02, wv->tru);                              //     TRUE        ( n2 -1 )
         WRDADDR(b03, wn->ext);                              // THEN
-        *b00 = (isize) b02;
-        *b01 = (isize) b03; }
+        LINK(b00, b02); LINK(b01, b03); }
 
     ws->num = kopForthAddWord(forth, ">NUMBER"); {          // ( ud1 a1 u1 -- ud2 a2 u2 )
         kfWord** b00 =                                      // BEGIN
@@ -86,10 +109,8 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
         WRDADDR(b05, wn->ext);                              //         EXIT THEN
         WRDADDR(b06, wn->bra); RAWADDR(b07, 0);             // AGAIN
         WRD(wn->ext);
-        *b01 = (isize) b02;
-        *b03 = (isize) b05;
-        *b04 = (isize) b06;
-        *b07 = (isize) b00; }
+        LINK(b01, b02); LINK(b03, b05);
+        LINK(b04, b06); LINK(b07, b00); }
 
     ws->snu = kopForthAddWord(forth, "S>NUMBER?"); {       // ( a1 u1 -- n 0 0 | d -1 0 | a2 u2 )
         // \ Save double status (true if need to drop high word)
@@ -126,14 +147,9 @@ void kfPopulateWordsString(kopForth* forth, kfWordsNative* wn,
         WRD(wm->tdr); WRD(wn->rpo); WRD(wn->rpo);          //     2DROP R> R>    ( addr u )
         WRD(wn->rpo); WRD(wn->rpo); WRD(wm->tdr);          //     R> R> 2DROP
         WRDADDR(b15, wn->ext);                             // THEN EXIT
-        *b00 = (isize) b02;
-        *b01 = (isize) b03;
-        *b04 = (isize) b06;
-        *b05 = (isize) b07;
-        *b08 = (isize) b14;
-        *b09 = (isize) b11;
-        *b10 = (isize) b12;
-        *b13 = (isize) b15; }
+        LINK(b00, b02); LINK(b01, b03); LINK(b04, b06);
+        LINK(b05, b07); LINK(b08, b14); LINK(b09, b11);
+        LINK(b10, b12); LINK(b13, b15); }
 }
 
 #endif // KF_WORDS_STRING_H

@@ -2,7 +2,7 @@
 #define KF_WORDS_NATIVE_H
 
 /*
- * kfWordsNative.h (last modified 2025-10-07)
+ * kfWordsNative.h (last modified 2025-10-10)
  * This contains the native word definitions for the kopForth system.
  */
 
@@ -36,7 +36,6 @@ struct kfWordsNative {
     kfWord* emt;  // EMIT
     kfWord* key;  // KEY
     kfWord* acc;  // ACCEPT
-    kfWord* wrd;  // WORD
     kfWord* typ;  // TYPE
     kfWord* pcr;  // (CREATE)
     kfWord* cmp;  // COMPARE
@@ -241,38 +240,6 @@ kfStatus W_Acc(kopForth* forth) {  // addr u1 -- u2
         u2++;
     }
     KF_DATA_PUSH(u2);
-    return KF_STATUS_OK;
-}
-
-kfStatus W_Wrd(kopForth* forth) {  // char -- addr
-    isize c;
-    KF_DATA_POP(c);
-    // write 0 (len) to HERE
-    *forth->here = 0;
-    // put HERE on the stack
-    KF_DATA_PUSH(forth->here);
-    if (forth->in_src.in_offset >= forth->in_src.in_len)
-        return KF_STATUS_OK;
-    // skip leading `char` in input stream
-    while (forth->in_src.buf[forth->in_src.in_offset] == c) {
-        forth->in_src.in_offset++;
-        if (forth->in_src.in_offset >= forth->in_src.in_len)
-            return KF_STATUS_OK;
-    }
-    // start copying !char characters to HERE+1
-    uint8_t* h = forth->here + 1;
-    usize ct = 0;
-    while (forth->in_src.buf[forth->in_src.in_offset] != c) {
-        *h = forth->in_src.buf[forth->in_src.in_offset];
-        h++;
-        ct++;
-        forth->in_src.in_offset++;
-        if (forth->in_src.in_offset >= forth->in_src.in_len)
-            break;
-    }
-    // update the value at HERE (1 byte)
-    *forth->here = ct;
-    // update the >IN to show what's been consumed
     return KF_STATUS_OK;
 }
 
@@ -592,7 +559,6 @@ void kfPopulateWordsNative(kopForth* forth, kfWordsNative* wn) {
     wn->emt = kopForthAddNativeWord(forth, "EMIT",            W_Emt, false);
     wn->key = kopForthAddNativeWord(forth, "KEY",             W_Key, false);
     wn->acc = kopForthAddNativeWord(forth, "ACCEPT",          W_Acc, false);
-    wn->wrd = kopForthAddNativeWord(forth, "WORD",            W_Wrd, false);
     wn->typ = kopForthAddNativeWord(forth, "TYPE",            W_Typ, false);
     wn->pcr = kopForthAddNativeWord(forth, "(CREATE)",        W_Pcr, false);
     wn->cmp = kopForthAddNativeWord(forth, "COMPARE",         W_Cmp, false);

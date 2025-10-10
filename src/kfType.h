@@ -2,7 +2,7 @@
 #define KF_TYPE_H
 
 /*
- * kfType.h (last modified 2025-08-27)
+ * kfType.h (last modified 2025-10-10)
  * This contains the main structs and types used by the kopForth system, along
  * with their helper functions.
  */
@@ -20,6 +20,7 @@
 #define LITADDR(var, wrd, isz) kopForthAddWordP(forth, wrd); isize* var = kopForthAddIsize(forth, (isize) isz)
 #define RAWADDR(var, isz) isize* var = kopForthAddIsize(forth, (isize) isz)
 #define PRSTR(str) WRD(forth->debug_words.psq); kopForthAddString(forth, str); WRD(forth->debug_words.typ)
+#define LINK(p1, p2) *p1 = (isize) p2;
 
 
 

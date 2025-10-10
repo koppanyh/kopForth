@@ -2,7 +2,7 @@
 #define KF_BIOS_H
 
 /*
- * kfBios.h (last modified 2025-09-03)
+ * kfBios.h (last modified 2025-10-06)
  * The BIOS file is meant to hold all the constants and interface functions
  * needed for easily porting kopForth to other platforms.
  * In theory, this should be the only file that needs to change for porting.
@@ -49,7 +49,7 @@ typedef intptr_t isize;
 
 #define KF_VER_MAJOR 0
 #define KF_VER_MINOR 2
-#define KF_VER_PATCH 7
+#define KF_VER_PATCH 8
 #define KF_YEAR_STR  "2025"
 
 #define KF_TO_STR(X)            #X

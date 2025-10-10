@@ -2,8 +2,8 @@
 #define KF_WORDS_STACK_MEM_H
 
 /*
- * kfWordsStackMem.h (last modified 2025-10-07)
- * This contains the word definitions for stack and address operators.
+ * kfWordsStackMem.h (last modified 2025-10-10)
+ * This contains the word definitions for stack and memory operators.
  */
 
 #include "kfType.h"
@@ -34,6 +34,8 @@ struct kfWordsStackMem {
     kfWord* alt;  // ALLOT
     kfWord* com;  // ,
     kfWord* cco;  // C,
+    kfWord* exe;  // EXECUTE
+    kfWord* mov;  // MOVE
 };
 
 
@@ -105,14 +107,14 @@ void kfPopulateWordsStackMem(kopForth* forth, kfWordsNative* wn,
         WRD(wn->lss); WRD(wm->zeq);          // < 0=
         WRD(wn->ext);
 
-    wm->rat = kopForthAddWord(forth, "R@");        // ( -- n )
-        WRD(wn->rpo); WRD(wn->rpo); WRD(wn->dup);  // R> R> DUP   ( n2 n1 n1 )
-        WRD(wn->rpu); WRD(wn->swp); WRD(wn->rpu);  // >R SWAP >R  ( n1 )
+    wm->rat = kopForthAddWord(forth, "R@");        // ( -- n1 )[ n1 n2 -- n1 n2]
+        WRD(wn->rpo); WRD(wn->rpo); WRD(wn->dup);  // R> R> DUP   ( n2 n1 n1 )[  ]
+        WRD(wn->rpu); WRD(wn->swp); WRD(wn->rpu);  // >R SWAP >R  ( n1 )[ n1 n2 ]
         WRD(wn->ext);
 
-    //////////////////////////
-    // Address manipulators //
-    //////////////////////////
+    /////////////////////////
+    // Memory manipulators //
+    /////////////////////////
 
     wm->cls = kopForthAddWord(forth, "CELLS");  // ( n -- n )
         LIT(sizeof(isize)); WRD(wn->mul);       // 8 *
@@ -140,6 +142,43 @@ void kfPopulateWordsStackMem(kopForth* forth, kfWordsNative* wn,
         LIT(sizeof(uint8_t));                // [ 1 CHARS ] LITERAL
         WRD(wm->alt);                        // ALLOT
         WRD(wn->ext);
+
+    wm->exe = kopForthAddWord(forth, "EXECUTE"); {  // ( xt -- )
+        LITADDR(b00, wn->lit, 0);                   // <addr> ! <xt>
+        WRD(wn->exc);
+        WRDADDR(b01, (kfWord*) 0);
+        WRD(wn->ext);
+        LINK(b00, b01); }
+
+    wm->mov = kopForthAddWord(forth, "MOVE"); {            // ( addr1 addr2 u -- )
+        WRD(wm->rot); WRD(wm->rot); WRD(wm->tdu);          // ROT ROT 2DUP       ( u addr1 addr2 addr1 addr2 )
+        WRD(wn->lss); LITADDR(b00, wn->zbr, 0);            // < IF               ( u addr1 addr2 )  \ Work backwards
+        WRD(wn->swp); WRD(wm->rot); WRD(wn->swp);          //     SWAP ROT SWAP  ( addr2 u addr1 )
+        WRD(wm->ovr); WRD(wm->add); LIT(1); WRD(wn->sub);  //     OVER + 1 -     ( addr2 u addr3 )
+        WRD(wm->rot); WRD(wm->rot); WRD(wn->swp);          //     ROT ROT SWAP   ( addr3 u addr2 )
+        WRD(wm->ovr); WRD(wm->add); LIT(1); WRD(wn->sub);  //     OVER + 1-      ( addr3 u addr4 )
+        WRD(wm->rot); WRD(wn->swp);                        //     ROT SWAP       ( u addr3 addr4 )
+        LIT(-1);                                           //     -1             ( u addr3 addr4 -1 )
+        LITADDR(b01, wn->bra, 0);                          // ELSE               ( u addr1 addr2 )
+        WRDADDR(b02, wn->lit); RAW(1);                     //     1              ( u addr1 addr2 1 )
+                                                           // THEN
+        WRDADDR(b03, wn->rpu);                             // >R                 ( u addr1 addr2 )[ 1|-1 ]
+                                                           // BEGIN              ( u addr3 addr4 )[ 1|-1 ]
+        WRDADDR(b04, wm->rot); WRD(wn->dup);               //     ROT DUP        ( addr3 addr4 u u )[ 1|-1 ]
+        LITADDR(b05, wn->zbr, 0);                          // WHILE              ( addr3 addr4 u )[ 1|-1 ]
+        LIT(1); WRD(wn->sub);                              //     1 -            ( addr3 addr4 u )[ 1|-1 ]
+        WRD(wn->swp); WRD(wm->rot);                        //     SWAP ROT       ( u addr4 addr3 )[ 1|-1 ]
+        WRD(wn->dup); WRD(wn->cat);                        //     DUP C@         ( u addr4 addr3 n )[ 1|-1 ]
+        WRD(wm->rot); WRD(wn->swp);                        //     ROT SWAP       ( u addr3 addr4 n )[ 1|-1 ]
+        WRD(wm->ovr); WRD(wn->cex);                        //     OVER C!        ( u addr3 addr4 )[ 1|-1 ]
+        WRD(wn->swp); WRD(wm->rat); WRD(wm->add);          //     SWAP R@ +      ( u addr4 addr3 )[ 1|-1 ]
+        WRD(wn->swp); WRD(wm->rat); WRD(wm->add);          //     SWAP R@ +      ( u addr3 addr4 )[ 1|-1 ]
+        LITADDR(b06, wn->bra, 0);                          // REPEAT
+        WRDADDR(b07, wn->drp); WRD(wn->drp);               // DROP DROP          ( u )[ 1|-1 ]
+        WRD(wn->rpo); WRD(wn->drp); WRD(wn->drp);          // R> DROP DROP       (  )
+        WRD(wn->ext);
+        LINK(b00, b02); LINK(b01, b03);
+        LINK(b05, b07); LINK(b06, b04); }
 }
 
 #endif // KF_WORDS_STACK_MEM_H
