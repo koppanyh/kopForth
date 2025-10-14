@@ -33,6 +33,16 @@ int main() {
         return s;
     }
 
+    // Specify a bootstrap file (only if file extension is loaded).
+    #ifdef KF_FILE_EXT
+        s = kopForthBootstrap(&forth, "boot.fs");
+        if (!kfStatusIsOk(s)) {
+            printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+            kfBiosTeardown();
+            return s;
+        }
+    #endif
+
     // Run the kopForth system until it stops.
     do {
         s = kopForthTick(&forth);
@@ -82,10 +92,12 @@ Update the Bios!
    - This contains the word definitions for stack and address operators
  - kfWordsString.h
    - This contains the word definitions for string/char related stuff
+ - kfWordsInterpret.h
+   - This contains the word definitions for the shell interpreter
+ - kfWordsCompile.h
+   - This contains the word definitions for the compiler
  - kfWordsFile.h
-   - This contains the word definitions for file access operations
- - kfWordsIntComp.h
-   - This contains the word definitions for the shell interpreter and compiler
+   - This contains the word definitions for the file access extension
  - main.c
    - Demo main file
 
@@ -108,9 +120,9 @@ Update the Bios!
 ## Changelog
 
  - TODO
-   - Rewrite some native words to be forth words
-   - Remove unnecessary words
-   - Add conditional words
+   - Rewrite native words in Forth if possible
+   - Move non-critical words into external files
+   - Optimization of word definitions
    - Add tests
  - v0.3 [DEV]
    - Add VERSION, DUMP words
@@ -119,6 +131,10 @@ Update the Bios!
    - Add file input support so programs can be loaded
    - Changed spacing formatting in word definition files
    - New comment format for specifying return stack contents
+   - New link macro so branches in words look cleaner
+   - Add bootstrap hook to start the system with a file
+   - Split kfWordsIntComp.h into interpreter and compiler
+   - Add conditional and loop words
  - v0.2 [MAIN]
    - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix

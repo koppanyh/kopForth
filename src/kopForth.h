@@ -8,12 +8,15 @@
  */
 
 #include "kfBios.h"
+#include "kfStatus.h"
 #include "kfStack.h"
 #include "kfType.h"
+
 #ifdef KF_FILE_EXT
     #include "kfWordsFile.h"
 #endif
-#include "kfWordsIntComp.h"
+#include "kfWordsCompile.h"
+#include "kfWordsInterpret.h"
 #include "kfWordsNative.h"
 #include "kfWordsStackMem.h"
 #include "kfWordsString.h"
@@ -46,10 +49,14 @@ kfStatus kfPopulateWords(kopForth* forth) {
     kfWordsString ws;
     kfPopulateWordsString(forth, &wn, &wv, &wm, &ws);
 
-    // Interpreter/Compiler words
-    kfWordsIntComp wi;
-    kfPopulateWordsIntComp(forth, &wn, &wv, &wm, &ws, &wi);
+    // Interpreter words
+    kfWordsInterpret wi;
+    kfPopulateWordsInterpret(forth, &wn, &wv, &wm, &ws, &wi);
     forth->debug_words.qut = wi.qut;
+
+    // Compiler words
+    kfWordsCompile wc;
+    kfPopulateWordsCompile(forth, &wn, &wv, &wm, &ws, &wi, &wc);
 
     // File access extension (if available)
     KF_FILE_EXT_INIT
@@ -125,7 +132,9 @@ void kfDebug(kopForth* forth) {
 // User-accessible functions  ▼ //
 //////////////////////////////////
 
-kfStatus kopForthTest() {
+kfStatus kopForthSelfTest() {
+    // These are low level tests just to check that
+    // stuff in memory is where we expect it.
     kfBiosWriteStr("Running self checks..."); kfBiosCR();
 
     // Make sure that our data type can actually be converted into a pointer and
@@ -182,18 +191,25 @@ kfStatus kopForthTest() {
 
     // Tests to make sure the compiler isn't doing any funny business. The words
     // written in forth depend on these flag positions being correct.
-    word.flags.raw_flags = 0;
     // Test that the native flag is in the right place.
+    word.flags.raw_flags = 0;
     word.flags.bit_flags.is_native = 1;
     if (word.flags.raw_flags != KF_FLAG_MASK_NATIVE) {
         kfBiosWriteStr("Bad `is_native` position in kfWordFlags"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
-    word.flags.raw_flags = 0;
     // Test that the immediate flag is in the right place.
+    word.flags.raw_flags = 0;
     word.flags.bit_flags.is_immediate = 1;
     if (word.flags.raw_flags != KF_FLAG_MASK_IMMEDIATE) {
         kfBiosWriteStr("Bad `is_immediate` position in kfWordFlags"); kfBiosCR();
+        return KF_TEST_STRUCT;
+    }
+    // Test that the compile only flag is in the right place.
+    word.flags.raw_flags = 0;
+    word.flags.bit_flags.compile_only = 1;
+    if (word.flags.raw_flags != KF_FLAG_MASK_COMPILE) {
+        kfBiosWriteStr("Bad `compile_only` position in kfWordFlags"); kfBiosCR();
         return KF_TEST_STRUCT;
     }
 
@@ -233,6 +249,18 @@ kfStatus kopForthInit(kopForth* forth) {
     kfBiosPrintIsize(sizeof(forth->mem));
     kfBiosCR();
 
+    return KF_STATUS_OK;
+}
+
+kfStatus kopForthBootstrap(kopForth* forth, char* filename) {
+    #ifndef KF_FILE_EXT
+        return KF_MISSING_FILE_EXT;
+    #endif
+    // The BOOT word just loads the specified file and then drops into the shell.
+    forth->debug_words.bot = kopForthAddWord(forth, "BOOT");              // ( -- )
+        WRD(forth->debug_words.psq); kopForthAddString(forth, filename);  // S" <filename>"  ( addr u )
+        WRD(forth->debug_words.ind); WRD(forth->debug_words.qut);         // INCLUDED QUIT   (  )
+    forth->pc = (uint8_t*) forth->debug_words.bot;
     return KF_STATUS_OK;
 }
 

@@ -1,5 +1,5 @@
 /*
- * main.c (last modified 2025-08-27)
+ * main.c (last modified 2025-10-10)
  * This is just a demo of how kopForth system is included.
  */
 
@@ -14,7 +14,7 @@
 int main() {
     // Initialize the metal and run self checks.
     kfBiosSetup();
-    kfStatus s = kopForthTest();
+    kfStatus s = kopForthSelfTest();
     if (!kfStatusIsOk(s)) {
         printf("Error: %d (%s)\n", s, kfStatusStr[s]);
         kfBiosTeardown();
@@ -30,6 +30,16 @@ int main() {
         return s;
     }
 
+    // Specify a bootstrap file (only if file extension is loaded).
+    #ifdef KF_FILE_EXT
+        s = kopForthBootstrap(&forth, "boot.fs");
+        if (!kfStatusIsOk(s)) {
+            printf("Error: %d (%s)\n", s, kfStatusStr[s]);
+            kfBiosTeardown();
+            return s;
+        }
+    #endif
+
     // Run the kopForth system until it stops.
     do {
         s = kopForthTick(&forth);
@@ -38,6 +48,8 @@ int main() {
     // Print debug stuff.
     printf("\nstack: ");
     kfDataStackPrint(&forth.d_stack);
+    printf("\nrstack: ");
+    kfRetnStackPrint(&forth.r_stack);
     printf("\ntib: %s\n", forth.in_buf);
     printf("#tib: %d\n", (int) forth.in_src.in_len);
 

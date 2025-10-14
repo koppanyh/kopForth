@@ -1,15 +1,12 @@
-#ifndef KF_WORDS_INT_COMP_H
-#define KF_WORDS_INT_COMP_H
+#ifndef KF_WORDS_INTERPRET_H
+#define KF_WORDS_INTERPRET_H
 
 /*
- * kfWordsIntComp.h (last modified 2025-10-10)
- * This contains the word definitions for the shell interpreter and compiler.
+ * kfWordsInterpret.h (last modified 2025-10-13)
+ * This contains the word definitions for the shell interpreter.
  */
 
 #include "kfType.h"
-#ifdef KF_FILE_EXT
-    #include "kfWordsFile.h"
-#endif
 #include "kfWordsNative.h"
 #include "kfWordsStackMem.h"
 #include "kfWordsString.h"
@@ -18,8 +15,8 @@
 
 
 // Pointers to words created in this file, for usage in defining other words.
-typedef struct kfWordsIntComp kfWordsIntComp;
-struct kfWordsIntComp {
+typedef struct kfWordsInterpret kfWordsInterpret;
+struct kfWordsInterpret {
     kfWord* abt;  // ABORT
     kfWord* src;  // SOURCE
     kfWord* rfl;  // REFILL
@@ -29,35 +26,23 @@ struct kfWordsIntComp {
     kfWord* par;  // PARSE
     kfWord* prn;  // PARSE-NAME
     kfWord* wrd;  // WORD
-    kfWord* cpl;  // COMPILE,
-    kfWord* rev;  // REVEAL
+    kfWord* enf;  // (ERR-NOT-FOUND)
     kfWord* obr;  // [
     kfWord* cbr;  // ]
-    kfWord* enf;  // (ERR-NOT-FOUND)
-    kfWord* lnk;  // >LINK
+    kfWord* nam;  // >NAME
     kfWord* fgs;  // >FLAGS
-    kfWord* cod;  // >CODE
-    kfWord* bod;  // >BODY
-    kfWord* urv;  // UNREVEAL
-    kfWord* dod;  // DODOES
-    kfWord* pdo;  // (DOES>)
-    kfWord* doe;  // DOES>
-    kfWord* cre;  // CREATE
-    kfWord* col;  // :
-    kfWord* sem;  // ;
-    kfWord* imm;  // IMMEDIATE
+    kfWord* eni;  // (ERR-NOT-INTP)
     kfWord* inp;  // INTERPRET
     kfWord* evl;  // EVALUATE
     kfWord* qut;  // QUIT
-    //kfWord* pst;  // POSTPONE
 };
 
 
 
 // Fill interpreter/compiler words into memory.
-void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
+void kfPopulateWordsInterpret(kopForth* forth, kfWordsNative* wn,
                             kfWordsVarAddrConst* wv, kfWordsStackMem* wm,
-                            kfWordsString* ws, kfWordsIntComp* wi) {
+                            kfWordsString* ws, kfWordsInterpret* wi) {
     // TODO Null check.
 
     wi->abt = kopForthAddWord(forth, "ABORT");     // ( * -- )
@@ -73,6 +58,10 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRDADDR(b00, wn->ext);                     // QUIT
         LINK(b01, b02);
         abt00 = b00; }
+
+    /////////////////////////
+    // Input parsing words //
+    /////////////////////////
 
     wi->src = kopForthAddWord(forth, "SOURCE");    // ( -- a u )
         WRD(wv->tib); WRD(wv->htb); WRD(wn->att);  // TIB #TIB @
@@ -113,42 +102,51 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRD(wn->ext);
 
     wi->par = kopForthAddWord(forth, "PARSE");                   // ( char "ccc<char>" -- c-addr u )
-        WRD(wi->skc); WRD(wn->exc);                              // SKIPCHAR !                    (  )
-        WRD(wi->src); WRD(wv->gin); WRD(wn->att); WRD(ws->sst);  // SOURCE >IN @ /STRING          ( addr u )
-        WRD(wm->ovr); WRD(wn->swp);                              // OVER SWAP                     ( addr addr u )
-        LIT(wi->ins); WRD(ws->xsk); WRD(wn->drp);                // ' ISNOTSKIPCHAR XT-SKIP DROP  ( addr addr2 )
-        WRD(wn->dup); LIT(1); WRD(wm->add);                      // DUP 1 +                       ( addr addr2 addr3 )
-        WRD(wv->tib); WRD(wn->sub); WRD(wv->gin); WRD(wn->exc);  // TIB - >IN !                   ( addr addr2 )
-        WRD(wm->ovr); WRD(wn->sub);                              // OVER -                        ( addr u2 )
+        WRD(wi->skc); WRD(wn->exc);                              // SKIPCHAR !                      (  )
+        WRD(wi->src); WRD(wv->gin); WRD(wn->att); WRD(ws->sst);  // SOURCE >IN @ /STRING            ( addr u )
+        WRD(wm->ovr); WRD(wn->swp);                              // OVER SWAP                       ( addr addr u )
+        LIT(wi->ins); WRD(ws->xsk); WRD(wn->drp);                // ['] ISNOTSKIPCHAR XT-SKIP DROP  ( addr addr2 )
+        WRD(wn->dup); LIT(1); WRD(wm->add);                      // DUP 1 +                         ( addr addr2 addr3 )
+        WRD(wv->tib); WRD(wn->sub); WRD(wv->gin); WRD(wn->exc);  // TIB - >IN !                     ( addr addr2 )
+        WRD(wm->ovr); WRD(wn->sub);                              // OVER -                          ( addr u2 )
         WRD(wn->ext);
 
     wi->prn = kopForthAddWord(forth, "PARSE-NAME");              // ( "<spaces>name<space>" -- c-addr u )
-        WRD(wi->src); WRD(wv->gin); WRD(wn->att); WRD(ws->sst);  // SOURCE >IN @ /STRING          ( addr u )
-        WRD(ws->bla); WRD(wi->skc); WRD(wn->exc);                // BL SKIPCHAR !                 ( addr u )
-        LIT(wi->isc); WRD(ws->xsk);                              // ' ISSKIPCHAR XT-SKIP          ( addr2 u2 )
-        WRD(wm->ovr); WRD(wn->swp);                              // OVER SWAP                     ( addr2 addr2 u2 )
-        LIT(wi->ins); WRD(ws->xsk); WRD(wn->drp);                // ' ISNOTSKIPCHAR XT-SKIP DROP  ( addr2 addr3 )
-        WRD(wm->tdu); WRD(wn->swp); WRD(wn->sub);                // 2DUP SWAP -                   ( addr2 addr3 u3 )
-        WRD(wn->swp); LIT(1); WRD(wm->add);                      // SWAP 1 +                      ( addr2 u3 addr4 )
-        WRD(wv->tib); WRD(wn->sub); WRD(wv->gin); WRD(wn->exc);  // TIB - >IN !                   ( addr2 u3 )
+        WRD(wi->src); WRD(wv->gin); WRD(wn->att); WRD(ws->sst);  // SOURCE >IN @ /STRING            ( addr u )
+        WRD(ws->bla); WRD(wi->skc); WRD(wn->exc);                // BL SKIPCHAR !                   ( addr u )
+        LIT(wi->isc); WRD(ws->xsk);                              // ['] ISSKIPCHAR XT-SKIP          ( addr2 u2 )
+        WRD(wm->ovr); WRD(wn->swp);                              // OVER SWAP                       ( addr2 addr2 u2 )
+        LIT(wi->ins); WRD(ws->xsk); WRD(wn->drp);                // ['] ISNOTSKIPCHAR XT-SKIP DROP  ( addr2 addr3 )
+        WRD(wm->tdu); WRD(wn->swp); WRD(wn->sub);                // 2DUP SWAP -                     ( addr2 addr3 u3 )
+        WRD(wn->swp); LIT(1); WRD(wm->add);                      // SWAP 1 +                        ( addr2 u3 addr4 )
+        WRD(wv->tib); WRD(wn->sub); WRD(wv->gin); WRD(wn->exc);  // TIB - >IN !                     ( addr2 u3 )
         WRD(wn->ext);
 
+    //#define KF_SUPPRESS_WORD
     wi->wrd = kopForthAddWord(forth, "WORD");      // ( char -- addr )
+        #ifdef KF_SUPPRESS_WORD
+        WRD(wv->dbg); WRD(wn->att); WRD(wv->fal); WRD(wv->dbg); WRD(wn->exc); WRD(wn->swp);
+        #endif
         // TODO update this to actually use the input char.
         WRD(wn->drp); WRD(wi->prn);                // DROP PARSE-NAME  ( addr u )
         WRD(wn->dup); WRD(wv->her); WRD(wn->cex);  // DUP HERE C!      ( addr u )
         WRD(wv->her); LIT(1); WRD(wm->add);        // HERE 1 +         ( addr u addr2 )
         WRD(wn->swp); WRD(wm->mov); WRD(wv->her);  // SWAP MOVE HERE   ( addr )
+        #ifdef KF_SUPPRESS_WORD
+        WRD(wn->swp); WRD(wv->dbg); WRD(wn->exc);
+        #endif
         WRD(wn->ext);
 
-    wi->cpl = kopForthAddWord(forth, "COMPILE,");  // ( xt -- )
-        WRD(wm->com);                              // ,
+    wi->enf = kopForthAddWord(forth, "(ERR-NOT-FOUND)");  // ( a -- )
+        WRD(ws->crr); PRSTR("ERROR: `");                  // CR ." ERROR: `"
+        WRD(ws->cnt); WRD(wn->typ);                       // COUNT TYPE
+        PRSTR("` word not found");                        // ." ` word not found"
+        WRD(ws->crr); WRD(wi->abt);                       // CR ABORT
         WRD(wn->ext);
 
-    wi->rev = kopForthAddWord(forth, "REVEAL");  // ( -- )
-        WRD(wv->ppt); WRD(wn->att);              // PP @
-        WRD(wv->lpt); WRD(wn->exc);              // LP !
-        WRD(wn->ext);
+    //////////////////////////
+    // Interpretation words //
+    //////////////////////////
 
     wi->obr = kopForthAddWord(forth, "[");         // ( -- )
         WRD(wv->fal); WRD(wv->sta); WRD(wn->exc);  // FALSE STATE !
@@ -159,75 +157,20 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRD(wv->tru); WRD(wv->sta); WRD(wn->exc);  // TRUE STATE !
         WRD(wn->ext);
 
-    wi->enf = kopForthAddWord(forth, "(ERR-NOT-FOUND)");  // ( a -- )
-        WRD(ws->crr);                                     // CR
-        PRSTR("ERROR: `");                                // ." ERROR: `"
-        WRD(ws->cnt); WRD(wn->typ);                       // COUNT TYPE
-        PRSTR("` word not found");                        // ." ` word not found"
-        WRD(ws->crr); WRD(wi->abt);                       // CR ABORT
+    wi->nam = kopForthAddWord(forth, ">NAME");       // ( xt -- a )
+        LIT(KF_WORD_NAME_LEN_OFFSET); WRD(wm->add);  // 0 +
         WRD(wn->ext);
 
-    wi->lnk = kopForthAddWord(forth, ">LINK");    // ( xt -- a )
-        LIT(KF_WORD_LINK_OFFSET); WRD(wm->add);   // 17 +
-        WRD(wn->ext);
     wi->fgs = kopForthAddWord(forth, ">FLAGS");   // ( xt -- a )
         LIT(KF_WORD_FLAGS_OFFSET); WRD(wm->add);  // 25 +
         WRD(wn->ext);
-    wi->cod = kopForthAddWord(forth, ">CODE");    // ( xt -- a )
-        LIT(KF_WORD_CODE_OFFSET); WRD(wm->add);   // 26 +
-        WRD(wn->ext);
-    wi->bod = kopForthAddWord(forth, ">BODY");    // ( xt -- a )
-        LIT(KF_WORD_DATA_OFFSET); WRD(wm->add);   // 34 +
-        WRD(wn->ext);
 
-    wi->urv = kopForthAddWord(forth, "UNREVEAL");  // ( -- )
-        WRD(wv->lat); WRD(wi->lnk); WRD(wn->att);  // LATEST >LINK @
-        WRD(wv->lpt); WRD(wn->exc);                // LP !
+    wi->eni = kopForthAddWord(forth, "(ERR-NOT-INTP)");  // ( xt -- )
+        WRD(ws->crr); PRSTR("ERROR: `");                 // CR ." ERROR: `"
+        WRD(wi->nam); WRD(ws->cnt); WRD(wn->typ);        // >NAME COUNT TYPE
+        PRSTR("` word is compile-only");                 // ." ` word is compile-only"
+        WRD(ws->crr); WRD(wi->abt);                      // CR ABORT
         WRD(wn->ext);
-
-    wi->dod = kopForthAddWord(forth, "DODOES");    // ( -- a )
-        WRD(wn->rpo); WRD(wn->rpo); WRD(wn->dup);  // R> R> DUP
-        WRD(wn->rpu); WRD(wn->swp); WRD(wn->rpu);  // >R SWAP >R
-        LIT(sizeof(isize)); WRD(wn->sub);          // [ 1 CELLS ] LITERAL -
-        WRD(wn->att); WRD(wi->bod);                // @ >BODY
-        WRD(wn->ext);
-
-    wi->pdo = kopForthAddWord(forth, "(DOES>)");   // ( -- )
-        WRD(wn->rpo); WRD(wv->ppt); WRD(wn->att);  // R> PP @
-        WRD(wi->cod); WRD(wn->exc);                // >CODE !
-        WRD(wn->ext);
-
-    wi->doe = kopForthAddWord(forth, "DOES>");  // ( -- )
-        LIT(wi->pdo); WRD(wi->cpl);             // ['] (DOES>) COMPILE,
-        LIT(wi->dod); WRD(wi->cpl);             // ['] DODOES COMPILE,
-        WRD(wn->ext);
-        wi->doe->flags.bit_flags.is_immediate = 1;
-
-    wi->cre = kopForthAddWord(forth, "CREATE");  // ( -- )
-        WRD(ws->bla); WRD(wi->wrd);              // BL WORD
-        WRD(wn->drp); WRD(wn->pcr);              // DROP (CREATE)
-        WRD(wi->pdo); WRD(wi->dod);              // DOES>
-        WRD(wn->ext);
-
-    wi->col = kopForthAddWord(forth, ":");         // ( -- )
-        WRD(wi->cre); WRD(wi->urv); WRD(wi->cbr);  // CREATE UNREVEAL POSTPONE ]
-        WRD(wv->her); WRD(wv->ppt); WRD(wn->att);  // HERE PP @
-        WRD(wi->cod); WRD(wn->exc);                // >CODE !
-        WRD(wn->ext);
-
-    wi->sem = kopForthAddWord(forth, ";");  // ( -- )
-        LIT(wn->ext); WRD(wi->cpl);         // ['] EXIT COMPILE,
-        WRD(wi->rev); WRD(wi->obr);         // REVEAL POSTPONE [
-        WRD(wn->ext);
-        wi->sem->flags.bit_flags.is_immediate = 1;
-
-    wi->imm = kopForthAddWord(forth, "IMMEDIATE");  // ( -- )
-        WRD(wv->ppt); WRD(wn->att); WRD(wi->fgs);   // PP @ >FLAGS
-        WRD(wn->dup); WRD(wn->cat);                 // DUP C@
-        LIT(KF_FLAG_MASK_IMMEDIATE); WRD(wm->orr);  // 2 OR
-        WRD(wn->swp); WRD(wn->cex);                 // SWAP C!
-        WRD(wn->ext);
-        wi->imm->flags.bit_flags.is_immediate = 1;
 
     wi->inp = kopForthAddWord(forth, "INTERPRET"); {             // ( -- )
                                                                  // BEGIN                                     (  )
@@ -238,10 +181,10 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRD(wv->sta); WRD(wn->att); LITADDR(b02, wn->zbr, 0);    //     STATE @ IF      \ Compiling           ( c-addr 0 | xt 1 | xt -1 )
         WRD(wn->dup); LITADDR(b03, wn->zbr, 0);                  //         DUP IF      \ Word                ( xt 1 | xt -1 )
         LIT(1); WRD(wn->equ); LITADDR(b04, wn->zbr, 0);          //             1 = IF  \ Immediate           ( xt )
-        WRD(wm->exe);                                            //                 EXECUTE                   ( ? )
+        WRD(wm->exe);                                            //                 EXECUTE                   (  )
         LITADDR(b05, wn->bra, 0);                                //             ELSE                          ( xt )
-        WRDADDR(b06, wi->cpl);                                   //                 COMPILE,                  (  )
-                                                                 //             THEN                          ( ? )
+        WRDADDR(b06, wm->cpl);                                   //                 COMPILE,                  (  )
+                                                                 //             THEN
         WRDADDR(b07, wn->bra); RAWADDR(b08, 0);                  //         ELSE        \ Unknown             ( c-addr 0 )
         WRDADDR(b09, wn->drp); WRD(wn->dup); WRD(ws->cnt);       //             DROP DUP COUNT                ( c-addr c-addr2 u )
         WRD(ws->snu);                                            //             S>NUMBER?                     ( c-addr n 0 0 | c-addr d -1 0 | c-addr c-addr3 u2 )
@@ -250,38 +193,42 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         LITADDR(b11, wn->bra, 0);                                //             ELSE    \ Number              ( c-addr n 0 | c-addr d -1 )
         WRDADDR(b12, wn->zbr); RAWADDR(b13, 0);                  //                 IF  \ Double              ( c-addr d )
         WRD(wn->swp);                                            //                     SWAP                  ( c-addr n n )
-        LIT(wn->lit); WRD(wi->cpl); WRD(wm->com);                //                     ['] (LIT) COMPILE, ,  ( c-addr n )
+        LIT(wn->lit); WRD(wm->cpl); WRD(wm->com);                //                     ['] (LIT) COMPILE, ,  ( c-addr n )
         WRDADDR(b14, wn->lit); RAW(wn->lit);                     //                 THEN ['] (LIT)            ( c-addr n xt )
-        WRD(wi->cpl); WRD(wm->com);                              //                 COMPILE, ,                ( c-addr )
+        WRD(wm->cpl); WRD(wm->com);                              //                 COMPILE, ,                ( c-addr )
         WRD(wn->drp);                                            //                 DROP                      (  )
-                                                                 //             THEN                          (  )
-                                                                 //         THEN                              ( ? )
+                                                                 //             THEN
+                                                                 //         THEN
         WRDADDR(b15, wn->bra); RAWADDR(b16, 0);                  //     ELSE            \ Interpreting        ( c-addr 0 | xt 1 | xt -1 )
         WRDADDR(b17, wn->zbr); RAWADDR(b18, 0);                  //         IF          \ Word                ( xt )
-                                                                 //             // TODO check if not compile only
-        WRD(wm->exe);                                            //             EXECUTE                       ( ? )
-        LITADDR(b19, wn->bra, 0);                                //         ELSE        \ Unknown             ( c-addr )
-        WRDADDR(b20, wn->dup); WRD(ws->cnt); WRD(ws->snu);       //             DUP COUNT S>NUMBER?           ( c-addr n 0 0 | c-addr d -1 0 | c-addr c-addr2 u )
-        LITADDR(b21, wn->zbr, 0);                                //             IF      \ Error               ( c-addr c-addr2 )
+        WRD(wn->dup); WRD(wi->fgs); WRD(wn->cat);                //             DUP >FLAGS C@                 ( xt n )  \ Check if compile-only
+        LIT(KF_FLAG_MASK_COMPILE); WRD(wm->and);                 //             4 AND                         ( xt f )
+        LITADDR(b19, wn->zbr, 0);                                //             IF                            ( xt )
+        WRD(wi->eni);                                            //                 (ERR-NOT-INTP)            (  )
+                                                                 //             THEN
+        WRDADDR(b20, wm->exe);                                   //             EXECUTE                       (  )
+        LITADDR(b21, wn->bra, 0);                                //         ELSE        \ Unknown             ( c-addr )
+        WRDADDR(b22, wn->dup); WRD(ws->cnt); WRD(ws->snu);       //             DUP COUNT S>NUMBER?           ( c-addr n 0 0 | c-addr d -1 0 | c-addr c-addr2 u )
+        LITADDR(b23, wn->zbr, 0);                                //             IF      \ Error               ( c-addr c-addr2 )
         WRD(wn->drp); WRD(wi->enf);                              //                 DROP (ERR-NOT-FOUND)      (  )
-                                                                 //             THEN    \ Number              ( c-addr n 0 | c-addr d -1 )
-        WRDADDR(b22, wn->zbr); RAWADDR(b23, 0);                  //             IF      \ Double              ( c-addr d )
+                                                                 //             THEN
+        WRDADDR(b24, wn->zbr); RAWADDR(b25, 0);                  //             IF      \ Double              ( c-addr d )
         WRD(wm->rot);                                            //                 ROT                       ( d c-addr )
-        LITADDR(b24, wn->bra, 0);                                //             ELSE    \ Single              ( c-addr n )
-        WRDADDR(b25, wn->swp);                                   //                 SWAP                      ( n c-addr )
-                                                                 //             THEN                          ( d c-addr | n c-addr )
-        WRDADDR(b26, wn->drp);                                   //             DROP                          ( n | d )
-                                                                 //         THEN                              ( ? | n | d )
-                                                                 //     THEN                                  ( ? | n | d )
-        WRDADDR(b27, wn->bra); RAWADDR(b28, 0);                  // REPEAT                                    ( c-addr )
-        WRDADDR(b29, wn->drp);                                   // DROP                                      (  )
+        LITADDR(b26, wn->bra, 0);                                //             ELSE    \ Single              ( c-addr n )
+        WRDADDR(b27, wn->swp);                                   //                 SWAP                      ( n c-addr )
+                                                                 //             THEN
+        WRDADDR(b28, wn->drp);                                   //             DROP                          ( n | d )
+                                                                 //         THEN
+                                                                 //     THEN
+        WRDADDR(b29, wn->bra); RAWADDR(b30, 0);                  // REPEAT
+        WRDADDR(b31, wn->drp);                                   // DROP                                      (  )
         WRD(wn->ext);
-        LINK(b01, b29); LINK(b02, b17); LINK(b03, b09);
+        LINK(b01, b31); LINK(b02, b17); LINK(b03, b09);
         LINK(b04, b06); LINK(b05, b07); LINK(b08, b15);
         LINK(b10, b12); LINK(b11, b15); LINK(b13, b14);
-        LINK(b16, b27); LINK(b18, b20); LINK(b19, b27);
-        LINK(b21, b22); LINK(b23, b25); LINK(b24, b26);
-        LINK(b28, b00); }
+        LINK(b16, b29); LINK(b18, b22); LINK(b19, b20);
+        LINK(b21, b29); LINK(b23, b24); LINK(b25, b27);
+        LINK(b26, b28); LINK(b30, b00); }
 
     wi->evl = kopForthAddWord(forth, "EVALUATE"); {              // ( c-addr u -- )
         WRD(wn->sip); WRD(wn->ntr);                              // SAVE-INPUT N>R     \ Save the current input source specification.
@@ -310,8 +257,6 @@ void kfPopulateWordsIntComp(kopForth* forth, kfWordsNative* wn,
         WRDADDR(b03, wn->ext);
         LINK(b02, b00); LINK(b01, b03);
         *abt00 = wi->qut; }
-
-    //wi->pst = kopForthAddWord(forth, "POSTPONE");  // ( -- )
 }
 
-#endif // KF_WORDS_INT_COMP_H
+#endif // KF_WORDS_INTERPRET_H

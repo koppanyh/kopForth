@@ -11,7 +11,8 @@
 #include "kfStack.h"
 #include "kfStatus.h"
 #include "kfType.h"
-#include "kfWordsIntComp.h"
+#include "kfWordsCompile.h"
+#include "kfWordsInterpret.h"
 #include "kfWordsNative.h"
 #include "kfWordsStackMem.h"
 #include "kfWordsString.h"
@@ -23,7 +24,8 @@
 #define KF_FILE_EXT_DEP_FULL kfWordsFile* wf,
 #define KF_FILE_EXT_DEP_SHORT &wf,
 #define KF_FILE_EXT_INIT kfWordsFile wf; \
-        kfPopulateWordsFile(forth, &wn, &wv, &wm, &ws, &wi, &wf);
+        kfPopulateWordsFile(forth, &wn, &wv, &wm, &ws, &wi, &wc, &wf); \
+        forth->debug_words.ind = wf.ind;
 
 
 
@@ -285,8 +287,8 @@ kfStatus W_Wrl(kopForth* forth) {  // c-addr u fileid -- ior
 // Fill file access words into memory.
 void kfPopulateWordsFile(kopForth* forth, kfWordsNative* wn,
                          kfWordsVarAddrConst* wv, kfWordsStackMem* wm,
-                         kfWordsString* ws, kfWordsIntComp* wi,
-                         kfWordsFile* wf) {
+                         kfWordsString* ws, kfWordsInterpret* wi,
+                         kfWordsCompile* wc, kfWordsFile* wf) {
     // TODO Null check.
 
     // Native words

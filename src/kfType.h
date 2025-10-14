@@ -21,6 +21,8 @@
 #define RAWADDR(var, isz) isize* var = kopForthAddIsize(forth, (isize) isz)
 #define PRSTR(str) WRD(forth->debug_words.psq); kopForthAddString(forth, str); WRD(forth->debug_words.typ)
 #define LINK(p1, p2) *p1 = (isize) p2;
+#define IMMEDIATE(wrd) wrd->flags.bit_flags.is_immediate = 1
+#define COMPONLY(wrd) wrd->flags.bit_flags.compile_only = 1
 
 
 
@@ -53,6 +55,8 @@ struct kfDebugWords {
     kfWord* typ;
     kfWord* psq;
     kfWord* qut;
+    kfWord* ind;
+    kfWord* bot;
 };
 
 // The data needed to keep track of what the current input source is.
@@ -96,9 +100,11 @@ union kfWordCode {
 
 #define KF_FLAG_MASK_NATIVE    0b00000001
 #define KF_FLAG_MASK_IMMEDIATE 0b00000010
+#define KF_FLAG_MASK_COMPILE   0b00000100
 struct kfWordBitFlags {
     uint8_t   is_native    : 1;  // Determines if the word points to a function or a list of words.
     uint8_t   is_immediate : 1;  // Determines if the word is executed at compile time.
+    uint8_t   compile_only : 1;  // Determines if this word can only be used at compile time.
 };
 
 union kfWordFlags {

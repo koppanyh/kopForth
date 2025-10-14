@@ -34,6 +34,7 @@ struct kfWordsStackMem {
     kfWord* alt;  // ALLOT
     kfWord* com;  // ,
     kfWord* cco;  // C,
+    kfWord* cpl;  // COMPILE,
     kfWord* exe;  // EXECUTE
     kfWord* mov;  // MOVE
 };
@@ -141,6 +142,10 @@ void kfPopulateWordsStackMem(kopForth* forth, kfWordsNative* wn,
         WRD(wv->her); WRD(wn->cex);          // HERE C!
         LIT(sizeof(uint8_t));                // [ 1 CHARS ] LITERAL
         WRD(wm->alt);                        // ALLOT
+        WRD(wn->ext);
+
+    wm->cpl = kopForthAddWord(forth, "COMPILE,");  // ( xt -- )
+        WRD(wm->com);                              // ,
         WRD(wn->ext);
 
     wm->exe = kopForthAddWord(forth, "EXECUTE"); {  // ( xt -- )
