@@ -124,7 +124,7 @@ Update the Bios!
    - Move non-critical words into external files
    - Optimization of word definitions
    - Add tests
- - v0.3 [DEV]
+ - v0.3 [MAIN] [DEV]
    - Add VERSION, DUMP words
    - Fixed CREATE word to be standard compliant
    - Change how TIB works to accomodate different inputs
@@ -135,7 +135,7 @@ Update the Bios!
    - Add bootstrap hook to start the system with a file
    - Split kfWordsIntComp.h into interpreter and compiler
    - Add conditional and loop words
- - v0.2 [MAIN]
+ - v0.2
    - TLDR: Major refactoring and minor improvements
    - Rename files and functions and macros with `kf` prefix
    - Replace printf with Bios calls
